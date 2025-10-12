@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <DefaultItemExcludes>$(DefaultItemExcludes);*.md</DefaultItemExcludes>
+  </PropertyGroup>
+  
+  <!-- Set default startup project -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Pixelium'">
+    <StartupObject>Pixelium.UI.Program</StartupObject>
+  </PropertyGroup>
+</Project>

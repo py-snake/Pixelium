@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Pixelium",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Pixelium.UI/bin/Debug/net6.0/Pixelium.UI.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Pixelium.UI",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        }
+    ]
+}
