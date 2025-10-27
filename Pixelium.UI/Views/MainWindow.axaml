@@ -1,114 +1,435 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Pixelium.UI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="Pixelium.UI.Views.MainWindow"
-        Title="Pixelium - Image Editor"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Pixelium Image Editor"
         Width="1200" Height="800">
-  
-  <Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="Auto"/> <!-- Új sor a status bar-nek -->
-    </Grid.RowDefinitions>
-    
-    <!-- Menu Bar -->
-    <Menu Grid.Row="0">
-      <MenuItem Header="File">
-        <MenuItem Header="New..." Command="{Binding NewCommand}"/>
-        <MenuItem Header="Open..." Command="{Binding OpenCommand}"/>
-        <MenuItem Header="Save..." Command="{Binding SaveCommand}"/>
-        <Separator/>
-        <MenuItem Header="Exit" Command="{Binding ExitCommand}"/>
-      </MenuItem>
-      <MenuItem Header="Edit">
-        <MenuItem Header="Undo" Command="{Binding UndoCommand}"/>
-        <MenuItem Header="Redo" Command="{Binding RedoCommand}"/>
-      </MenuItem>
-      <MenuItem Header="Filters">
-        <MenuItem Header="Grayscale" Command="{Binding GrayscaleCommand}"/>
-        <MenuItem Header="Invert" Command="{Binding InvertCommand}"/>
-        <MenuItem Header="Flip Horizontal" Command="{Binding FlipHorizontalCommand}"/>
-        <MenuItem Header="Flip Vertical" Command="{Binding FlipVerticalCommand}"/>
-        <MenuItem Header="Gamma" Command="{Binding OpenGammaDialogCommand}"/>
-      </MenuItem>
-    </Menu>
-    
-    <!-- Main Content -->
-    <Grid Grid.Row="1">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="200"/>
-        <ColumnDefinition Width="*"/>
-      </Grid.ColumnDefinitions>
-      
-      <!-- Layers Panel -->
-      <Border Grid.Column="0" Background="#2D2D30" BorderBrush="#3E3E42" BorderThickness="0,0,1,0">
-        <StackPanel Margin="10">
-          <TextBlock Text="Layers" Foreground="White" FontWeight="Bold" Margin="0,0,0,10"/>
-          <ListBox Background="#2D2D30" Foreground="White">
-            <ListBoxItem>Background</ListBoxItem>
-          </ListBox>
-        </StackPanel>
-      </Border>
-      
-      <!-- Canvas Area -->
-      <ScrollViewer Grid.Column="1" Background="#393939">
-        <Canvas Name="ImageCanvas" Background="Transparent">
-          <Image Name="MainImage" 
-                 Source="{Binding ImageSource}"
-                 Stretch="None"/>
-        </Canvas>
-      </ScrollViewer>
-    </Grid>
-    
-    <Border Grid.Row="2" Background="#007ACC" Height="25">
-      <TextBlock Text="{Binding StatusMessage}" 
-                 Foreground="White" 
-                 VerticalAlignment="Center"
-                 Margin="10,0"
-                 FontSize="12"/>
-    </Border>
 
-        <!-- Gamma Adjustment Dialog -->
-    <Grid Background="#CC000000" 
-          IsVisible="{Binding IsGammaDialogOpen}"
-          ZIndex="1000">
-        <Border Background="#2D2D30" 
-                BorderBrush="#007ACC" 
-                BorderThickness="2"
-                Width="300"
-                Height="200"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Center">
-            <StackPanel Margin="20" Spacing="15">
-                <TextBlock Text="Gamma Adjustment" 
-                          Foreground="White" 
-                          FontSize="16" 
-                          FontWeight="Bold"/>
-                
-                <TextBlock Text="{Binding GammaDisplayValue}" 
-                          Foreground="White"/>
-                
-                <Slider Minimum="0.1" 
-                       Maximum="3.0" 
-                       Value="{Binding GammaValue}"
-                       TickFrequency="0.1"
-                       TickPlacement="BottomRight"
-                       Foreground="White"/>
-                
-                <StackPanel Orientation="Horizontal" 
-                           HorizontalAlignment="Right" 
-                           Spacing="10">
-                    <Button Content="Cancel" 
-                           Command="{Binding CancelGammaCommand}"
-                           Background="#555555"
-                           Foreground="White"/>
-                    <Button Content="Apply" 
-                           Command="{Binding ApplyGammaCommand}"
-                           Background="#007ACC"
-                           Foreground="White"/>
-                </StackPanel>
-            </StackPanel>
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        
+        <!-- Menu Bar -->
+        <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" Command="{Binding NewCommand}"/>
+                <MenuItem Header="_Open..." Command="{Binding OpenCommand}"/>
+                <MenuItem Header="_Save..." Command="{Binding SaveCommand}"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
+            </MenuItem>
+            
+            <MenuItem Header="_Edit">
+                <MenuItem Header="_Undo" Command="{Binding UndoCommand}"/>
+                <MenuItem Header="_Redo" Command="{Binding RedoCommand}"/>
+            </MenuItem>
+            
+            <MenuItem Header="_View">
+                <MenuItem Header="Zoom _In" Command="{Binding ZoomInCommand}"/>
+                <MenuItem Header="Zoom _Out" Command="{Binding ZoomOutCommand}"/>
+                <MenuItem Header="Zoom _100%" Command="{Binding ZoomActualCommand}"/>
+                <Separator/>
+                <MenuItem Header="Fit to _Width" Command="{Binding FitToWidthCommand}"/>
+                <MenuItem Header="Fit to _Height" Command="{Binding FitToHeightCommand}"/>
+                <MenuItem Header="Fit to _Screen" Command="{Binding FitToScreenCommand}"/>
+                <MenuItem Header="_Stretch" Command="{Binding StretchCommand}"/>
+            </MenuItem>
+            
+            <MenuItem Header="_Image">
+                <MenuItem Header="_Grayscale" Command="{Binding GrayscaleCommand}"/>
+                <MenuItem Header="_Invert" Command="{Binding InvertCommand}"/>
+                <Separator/>
+                <MenuItem Header="Flip _Horizontal" Command="{Binding FlipHorizontalCommand}"/>
+                <MenuItem Header="Flip _Vertical" Command="{Binding FlipVerticalCommand}"/>
+            </MenuItem>
+            
+            <MenuItem Header="_Adjustments">
+                <MenuItem Header="_Gamma Correction..." Command="{Binding OpenGammaDialogCommand}"/>
+                <MenuItem Header="_Logarithmic Transform..." Command="{Binding OpenLogarithmicDialogCommand}"/>
+                <Separator/>
+                <MenuItem Header="Show _Histogram" Command="{Binding ShowHistogramCommand}"/>
+                <MenuItem Header="Histogram _Equalization" Command="{Binding ApplyHistogramEqualizationCommand}"/>
+            </MenuItem>
+            
+            <MenuItem Header="_Filters">
+                <MenuItem Header="_Box Filter..." Command="{Binding OpenBoxFilterDialogCommand}"/>
+                <MenuItem Header="_Gaussian Blur..." Command="{Binding OpenGaussianDialogCommand}"/>
+                <Separator/>
+                <MenuItem Header="_Sobel Edge Detection" Command="{Binding ApplySobelCommand}"/>
+                <MenuItem Header="_Laplace Edge Detection" Command="{Binding ApplyLaplaceCommand}"/>
+            </MenuItem>
+            
+            <MenuItem Header="_Layers">
+                <MenuItem Header="_New Layer" Command="{Binding AddLayerCommand}"/>
+                <MenuItem Header="_Duplicate Layer" Command="{Binding DuplicateLayerCommand}"/>
+                <MenuItem Header="_Remove Layer" Command="{Binding RemoveLayerCommand}"/>
+                <MenuItem Header="_Merge Down" Command="{Binding MergeDownCommand}"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,250">
+            
+            <!-- Image Display Area -->
+            <Border Grid.Column="0" 
+                    Background="#2A2A2A" 
+                    BorderBrush="#404040" 
+                    BorderThickness="1"
+                    Padding="10"
+                    x:Name="ImageContainer">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" 
+                             VerticalScrollBarVisibility="Auto"
+                             x:Name="ImageScroller">
+                    <Viewbox Stretch="{Binding ImageStretch}"
+                             StretchDirection="Both"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center">
+                        <Image Source="{Binding ImageSource}" 
+                               Width="{Binding ImageDisplayWidth}"
+                               Height="{Binding ImageDisplayHeight}"/>
+                    </Viewbox>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Layers Panel -->
+            <Border Grid.Column="1" 
+                    Background="#1E1E1E" 
+                    BorderBrush="#404040" 
+                    BorderThickness="1,1,0,0"
+                    Padding="10">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" 
+                              Text="Layers" 
+                              FontSize="16" 
+                              FontWeight="Bold"
+                              Foreground="White"
+                              Margin="0,0,0,10"/>
+                    
+                    <TextBlock DockPanel.Dock="Top"
+                              Text="Tip: Select a layer to edit it"
+                              FontSize="11"
+                              Foreground="Gray"
+                              Margin="0,0,0,5"
+                              TextWrapping="Wrap"/>
+                    
+                    <!-- Layer List -->
+                    <ListBox DockPanel.Dock="Top"
+                            ItemsSource="{Binding Layers}"
+                            SelectedItem="{Binding SelectedLayer}"
+                            Background="#2A2A2A"
+                            Height="350"
+                            Margin="0,0,0,10">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Margin="5">
+                                    <CheckBox IsChecked="{Binding Visible}" 
+                                             Margin="0,0,10,0"
+                                             ToolTip.Tip="Toggle Visibility"/>
+                                    <TextBlock Text="{Binding Name}" 
+                                              Foreground="White"
+                                              VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Opacity, StringFormat=' ({0:P0})'}" 
+                                              Foreground="Gray"
+                                              VerticalAlignment="Center"
+                                              FontSize="11"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Layer Info -->
+                    <TextBlock DockPanel.Dock="Top"
+                              Text="Layer Controls:"
+                              FontSize="12"
+                              FontWeight="SemiBold"
+                              Foreground="White"
+                              Margin="0,0,0,5"/>
+
+                    <!-- Layer Controls -->
+                    <StackPanel DockPanel.Dock="Bottom" Spacing="5">
+                        <Button Content="➕ Add Layer" 
+                               Command="{Binding AddLayerCommand}"
+                               HorizontalAlignment="Stretch"
+                               HorizontalContentAlignment="Left"
+                               Padding="8"/>
+                        <Button Content="📋 Duplicate Layer" 
+                               Command="{Binding DuplicateLayerCommand}"
+                               HorizontalAlignment="Stretch"
+                               HorizontalContentAlignment="Left"
+                               Padding="8"/>
+                        <Button Content="🗑️ Remove Layer" 
+                               Command="{Binding RemoveLayerCommand}"
+                               HorizontalAlignment="Stretch"
+                               HorizontalContentAlignment="Left"
+                               Padding="8"/>
+                        <Button Content="⬇️ Merge Down" 
+                               Command="{Binding MergeDownCommand}"
+                               HorizontalAlignment="Stretch"
+                               HorizontalContentAlignment="Left"
+                               Padding="8"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" 
+                Background="#007ACC" 
+                Padding="10,5">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0"
+                          Text="{Binding StatusMessage}" 
+                          Foreground="White"
+                          FontWeight="SemiBold"
+                          VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1"
+                          Text="{Binding ZoomPercentage, StringFormat='Zoom: {0:F0}%'}"
+                          Foreground="White"
+                          Margin="10,0,0,0"
+                          VerticalAlignment="Center"/>
+            </Grid>
         </Border>
+
+        <!-- Gamma Dialog -->
+        <Panel Grid.Row="0" Grid.RowSpan="3" 
+               IsVisible="{Binding IsGammaDialogOpen}"
+               ZIndex="100">
+            <Border Background="#CC000000"/>
+            <Border Background="White" 
+                   Padding="20"
+                   Width="400"
+                   Height="220"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   BoxShadow="0 4 16 2 #40000000"
+                   CornerRadius="8">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Gamma Correction" 
+                              FontSize="18" 
+                              FontWeight="Bold"/>
+                    
+                    <TextBlock Text="{Binding GammaDisplayValue}" 
+                              FontSize="14"
+                              HorizontalAlignment="Center"
+                              Foreground="#007ACC"/>
+                    
+                    <Slider Minimum="0.1" 
+                           Maximum="3.0" 
+                           Value="{Binding GammaValue}"
+                           TickFrequency="0.1"
+                           IsSnapToTickEnabled="True"
+                           Height="40"/>
+                    
+                    <Grid ColumnDefinitions="*,*,*">
+                        <TextBlock Grid.Column="0" Text="0.1" FontSize="10" Foreground="Gray"/>
+                        <TextBlock Grid.Column="1" Text="1.0" FontSize="10" Foreground="Gray" HorizontalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="3.0" FontSize="10" Foreground="Gray" HorizontalAlignment="Right"/>
+                    </Grid>
+                    
+                    <StackPanel Orientation="Horizontal" 
+                               HorizontalAlignment="Center" 
+                               Spacing="10"
+                               Margin="0,10,0,0">
+                        <Button Content="✓ Apply" 
+                               Command="{Binding ApplyGammaCommand}"
+                               Width="120"
+                               Height="35"
+                               Background="#28a745"
+                               Foreground="White"/>
+                        <Button Content="✕ Cancel" 
+                               Command="{Binding CancelGammaCommand}"
+                               Width="120"
+                               Height="35"
+                               Background="#dc3545"
+                               Foreground="White"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Panel>
+
+        <!-- Logarithmic Dialog -->
+        <Panel Grid.Row="0" Grid.RowSpan="3"
+               IsVisible="{Binding IsLogarithmicDialogOpen}"
+               ZIndex="100">
+            <Border Background="#CC000000"/>
+            <Border Background="White" 
+                   Padding="20"
+                   Width="400"
+                   Height="220"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   BoxShadow="0 4 16 2 #40000000"
+                   CornerRadius="8">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Logarithmic Transform" 
+                              FontSize="18" 
+                              FontWeight="Bold"/>
+                    
+                    <TextBlock Text="{Binding LogarithmicDisplayValue}" 
+                              FontSize="14"
+                              HorizontalAlignment="Center"
+                              Foreground="#007ACC"/>
+                    
+                    <Slider Minimum="0.1" 
+                           Maximum="3.0" 
+                           Value="{Binding LogarithmicC}"
+                           TickFrequency="0.1"
+                           IsSnapToTickEnabled="True"
+                           Height="40"/>
+                    
+                    <Grid ColumnDefinitions="*,*,*">
+                        <TextBlock Grid.Column="0" Text="0.1" FontSize="10" Foreground="Gray"/>
+                        <TextBlock Grid.Column="1" Text="1.0" FontSize="10" Foreground="Gray" HorizontalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="3.0" FontSize="10" Foreground="Gray" HorizontalAlignment="Right"/>
+                    </Grid>
+                    
+                    <StackPanel Orientation="Horizontal" 
+                               HorizontalAlignment="Center" 
+                               Spacing="10"
+                               Margin="0,10,0,0">
+                        <Button Content="✓ Apply" 
+                               Command="{Binding ApplyLogarithmicCommand}"
+                               Width="120"
+                               Height="35"
+                               Background="#28a745"
+                               Foreground="White"/>
+                        <Button Content="✕ Cancel" 
+                               Command="{Binding CancelLogarithmicCommand}"
+                               Width="120"
+                               Height="35"
+                               Background="#dc3545"
+                               Foreground="White"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Panel>
+
+        <!-- Box Filter Dialog -->
+        <Panel Grid.Row="0" Grid.RowSpan="3"
+               IsVisible="{Binding IsBoxFilterDialogOpen}"
+               ZIndex="100">
+            <Border Background="#CC000000"/>
+            <Border Background="White" 
+                   Padding="20"
+                   Width="400"
+                   Height="220"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   BoxShadow="0 4 16 2 #40000000"
+                   CornerRadius="8">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Box Filter (Average)" 
+                              FontSize="18" 
+                              FontWeight="Bold"/>
+                    
+                    <TextBlock Text="{Binding BoxFilterDisplayValue}" 
+                              FontSize="14"
+                              HorizontalAlignment="Center"
+                              Foreground="#007ACC"/>
+                    
+                    <Slider Minimum="3" 
+                           Maximum="15" 
+                           Value="{Binding BoxFilterSize}"
+                           TickFrequency="2"
+                           IsSnapToTickEnabled="True"
+                           Height="40"/>
+                    
+                    <Grid ColumnDefinitions="*,*,*">
+                        <TextBlock Grid.Column="0" Text="3x3" FontSize="10" Foreground="Gray"/>
+                        <TextBlock Grid.Column="1" Text="9x9" FontSize="10" Foreground="Gray" HorizontalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="15x15" FontSize="10" Foreground="Gray" HorizontalAlignment="Right"/>
+                    </Grid>
+                    
+                    <StackPanel Orientation="Horizontal" 
+                               HorizontalAlignment="Center" 
+                               Spacing="10"
+                               Margin="0,10,0,0">
+                        <Button Content="✓ Apply" 
+                               Command="{Binding ApplyBoxFilterCommand}"
+                               Width="120"
+                               Height="35"
+                               Background="#28a745"
+                               Foreground="White"/>
+                        <Button Content="✕ Cancel" 
+                               Command="{Binding CancelBoxFilterCommand}"
+                               Width="120"
+                               Height="35"
+                               Background="#dc3545"
+                               Foreground="White"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Panel>
+
+        <!-- Gaussian Filter Dialog -->
+        <Panel Grid.Row="0" Grid.RowSpan="3"
+               IsVisible="{Binding IsGaussianDialogOpen}"
+               ZIndex="100">
+            <Border Background="#CC000000"/>
+            <Border Background="White" 
+                   Padding="20"
+                   Width="400"
+                   Height="300"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   BoxShadow="0 4 16 2 #40000000"
+                   CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Gaussian Blur" 
+                              FontSize="18" 
+                              FontWeight="Bold"/>
+                    
+                    <TextBlock Text="{Binding GaussianDisplayValue}" 
+                              FontSize="14"
+                              HorizontalAlignment="Center"
+                              Foreground="#007ACC"/>
+                    
+                    <TextBlock Text="Sigma (Blur Amount):" 
+                              FontSize="12" 
+                              FontWeight="SemiBold"/>
+                    <Slider Minimum="0.5" 
+                           Maximum="3.0" 
+                           Value="{Binding GaussianSigma}"
+                           TickFrequency="0.1"
+                           IsSnapToTickEnabled="True"
+                           Height="30"/>
+                    
+                    <TextBlock Text="Kernel Size:" 
+                              FontSize="12" 
+                              FontWeight="SemiBold"/>
+                    <Slider Minimum="3" 
+                           Maximum="11" 
+                           Value="{Binding GaussianSize}"
+                           TickFrequency="2"
+                           IsSnapToTickEnabled="True"
+                           Height="30"/>
+                    
+                    <StackPanel Orientation="Horizontal" 
+                               HorizontalAlignment="Center" 
+                               Spacing="10"
+                               Margin="0,10,0,0">
+                        <Button Content="✓ Apply" 
+                               Command="{Binding ApplyGaussianFilterCommand}"
+                               Width="120"
+                               Height="35"
+                               Background="#28a745"
+                               Foreground="White"/>
+                        <Button Content="✕ Cancel" 
+                               Command="{Binding CancelGaussianCommand}"
+                               Width="120"
+                               Height="35"
+                               Background="#dc3545"
+                               Foreground="White"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Panel>
+
     </Grid>
-  </Grid>
 </Window>

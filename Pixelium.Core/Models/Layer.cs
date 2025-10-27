@@ -13,8 +13,8 @@ namespace Pixelium.Core.Models
         private bool _isLocked = false;
         private SKBitmap _content;
 
-        public string Name
-        {
+        public string Name 
+        { 
             get => _name;
             set
             {
@@ -23,8 +23,8 @@ namespace Pixelium.Core.Models
             }
         }
 
-        public SKBitmap Content
-        {
+        public SKBitmap Content 
+        { 
             get => _content;
             set
             {
@@ -33,8 +33,8 @@ namespace Pixelium.Core.Models
             }
         }
 
-        public float Opacity
-        {
+        public float Opacity 
+        { 
             get => _opacity;
             set
             {
@@ -43,8 +43,8 @@ namespace Pixelium.Core.Models
             }
         }
 
-        public bool Visible
-        {
+        public bool Visible 
+        { 
             get => _visible;
             set
             {
@@ -54,9 +54,9 @@ namespace Pixelium.Core.Models
         }
 
         public SKBlendMode BlendMode { get; set; } = SKBlendMode.SrcOver;
-
-        public bool IsLocked
-        {
+        
+        public bool IsLocked 
+        { 
             get => _isLocked;
             set
             {
@@ -69,8 +69,7 @@ namespace Pixelium.Core.Models
         {
             _content = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
             _name = name;
-
-            // Initialize with transparent background
+            
             using var canvas = new SKCanvas(_content);
             canvas.Clear(SKColors.Transparent);
         }
@@ -85,9 +84,8 @@ namespace Pixelium.Core.Models
                 IsLocked = IsLocked
             };
 
-            // Copy bitmap content
             _content.CopyTo(clone.Content);
-
+            
             return clone;
         }
 
