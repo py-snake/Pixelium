@@ -86,7 +86,7 @@ namespace Pixelium.Core.Services.LUT
             string key = $"Gamma_{gamma}";
             return GetOrCreateTable(key, i => CalculateGamma(i, gamma));
         }
-        
+
         private byte CalculateGamma(int value, double gamma)
         {
             // Normalizálás: 0-255 -> 0.0-1.0
@@ -97,6 +97,19 @@ namespace Pixelium.Core.Services.LUT
 
             // Vissza konvertálás: 0.0-1.0 -> 0-255
             return (byte)Math.Min(255, Math.Max(0, result * 255));
+        }
+
+        public byte[] GetLogarithmicTable(double c)
+        {
+            string key = $"Logarithmic_{c}";
+            return GetOrCreateTable(key, i => CalculateLogarithmic(i, c));
+        }
+
+        private byte CalculateLogarithmic(int value, double c)
+        {
+            double maxLog = Math.Log(1 + 255);
+            double result = c * Math.Log(1 + value) * 255 / maxLog;
+            return (byte)Math.Min(255, Math.Max(0, result));
         }
     }
 }

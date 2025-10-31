@@ -77,9 +77,8 @@ namespace Pixelium.Core.Processors
             var histogram = HistogramProcessor.CalculateHistogram(bitmap);
             int totalPixels = histogram.TotalPixels;
 
-            byte[] redMap = CalculateEqualizationMap(histogram.Red, totalPixels);
-            byte[] greenMap = CalculateEqualizationMap(histogram.Green, totalPixels);
-            byte[] blueMap = CalculateEqualizationMap(histogram.Blue, totalPixels);
+            // Equalize luminosity only to preserve colors better
+            byte[] lumMap = CalculateEqualizationMap(histogram.Luminosity, totalPixels);
 
             var pixels = bitmap.GetPixels();
             var ptr = (byte*)pixels.ToPointer();
@@ -90,9 +89,31 @@ namespace Pixelium.Core.Processors
 
                 for (int x = 0; x < bitmap.Width * 4; x += 4)
                 {
-                    rowPtr[x] = blueMap[rowPtr[x]];
-                    rowPtr[x + 1] = greenMap[rowPtr[x + 1]];
-                    rowPtr[x + 2] = redMap[rowPtr[x + 2]];
+                    byte b = rowPtr[x];
+                    byte g = rowPtr[x + 1];
+                    byte r = rowPtr[x + 2];
+
+                    // Calculate original luminosity
+                    int oldLum = (int)(0.299 * r + 0.587 * g + 0.114 * b);
+
+                    // Get equalized luminosity
+                    int newLum = lumMap[oldLum];
+
+                    // Avoid division by zero
+                    if (oldLum == 0)
+                    {
+                        rowPtr[x] = (byte)newLum;
+                        rowPtr[x + 1] = (byte)newLum;
+                        rowPtr[x + 2] = (byte)newLum;
+                    }
+                    else
+                    {
+                        // Scale RGB by luminosity change to preserve color ratios
+                        double scale = newLum / (double)oldLum;
+                        rowPtr[x] = (byte)Math.Min(255, Math.Max(0, b * scale));
+                        rowPtr[x + 1] = (byte)Math.Min(255, Math.Max(0, g * scale));
+                        rowPtr[x + 2] = (byte)Math.Min(255, Math.Max(0, r * scale));
+                    }
                 }
             });
 
@@ -103,7 +124,7 @@ namespace Pixelium.Core.Processors
         {
             double[] cdf = new double[256];
             cdf[0] = histogram[0] / (double)totalPixels;
-            
+
             for (int i = 1; i < 256; i++)
             {
                 cdf[i] = cdf[i - 1] + (histogram[i] / (double)totalPixels);

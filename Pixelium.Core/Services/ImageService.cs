@@ -15,6 +15,7 @@ namespace Pixelium.Core.Services
         private readonly ILookupTableService _lutService;
 
         public Project? CurrentProject { get; private set; }
+        public EditMode CurrentEditMode { get; set; } = EditMode.NonDestructive;
 
         public event EventHandler? ProjectChanged;
         public event EventHandler? LayerChanged;
@@ -26,7 +27,7 @@ namespace Pixelium.Core.Services
         public ImageService()
         {
             _commandHistory = new CommandHistory();
-            _lutService = new LookupTableService(); 
+            _lutService = new LookupTableService();
         }
 
         public void CreateNewProject(int width, int height, string name = "Untitled")
@@ -94,12 +95,32 @@ namespace Pixelium.Core.Services
 
         private void ApplyFilter(IImageProcessor processor, string filterName)
         {
-            if (CurrentProject?.ActiveLayer?.Content == null || CurrentProject.ActiveLayer.IsLocked) 
+            if (CurrentProject?.ActiveLayer?.Content == null || CurrentProject.ActiveLayer.IsLocked)
                 return;
 
             var stopwatch = Stopwatch.StartNew();
-            var command = new FilterCommand(CurrentProject.ActiveLayer, processor, filterName);
-            _commandHistory.Execute(command);
+
+            if (CurrentEditMode == EditMode.NonDestructive)
+            {
+                // Non-destructive: Create a new layer with the filter applied
+                var newLayer = CurrentProject.ActiveLayer.Clone();
+                newLayer.Name = $"{filterName}";
+
+                processor.Process(newLayer.Content);
+
+                int activeIndex = CurrentProject.Layers.IndexOf(CurrentProject.ActiveLayer);
+
+                // Use command for undo/redo support
+                var command = new AddLayerCommand(CurrentProject, newLayer, activeIndex + 1, filterName);
+                _commandHistory.Execute(command);
+            }
+            else
+            {
+                // Destructive: Modify active layer in-place with undo support
+                var command = new FilterCommand(CurrentProject.ActiveLayer, processor, filterName);
+                _commandHistory.Execute(command);
+            }
+
             stopwatch.Stop();
 
             FilterProcessed?.Invoke(this, new FilterProcessedEventArgs
@@ -146,27 +167,44 @@ namespace Pixelium.Core.Services
         public void ApplySobelEdgeDetection() => 
             ApplyFilter(new SobelEdgeDetector(), "Sobel Edge Detection");
 
-        public void ApplyLaplaceEdgeDetection() => 
+        public void ApplyLaplaceEdgeDetection() =>
             ApplyFilter(new LaplaceEdgeDetector(), "Laplace Edge Detection");
+
+        public void ApplyHarrisCornerDetection(float threshold = 0.01f, float k = 0.04f, float sigma = 1.0f) =>
+            ApplyFilter(new HarrisCornerDetector(threshold, k, sigma), $"Harris Corner Detection (t={threshold:0.000})");
 
         public void AddNewLayer(string name = "New Layer")
         {
             if (CurrentProject == null) return;
-            CurrentProject.AddLayer(name);
+
+            var layer = new Layer(CurrentProject.Width, CurrentProject.Height, name);
+            var command = new AddLayerCommand(CurrentProject, layer, CurrentProject.Layers.Count, "Add Layer");
+            _commandHistory.Execute(command);
+
             LayerChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void RemoveActiveLayer()
         {
-            if (CurrentProject?.ActiveLayer == null) return;
-            CurrentProject.RemoveLayer(CurrentProject.ActiveLayer);
+            if (CurrentProject?.ActiveLayer == null || CurrentProject.Layers.Count <= 1) return;
+
+            var command = new RemoveLayerCommand(CurrentProject, CurrentProject.ActiveLayer);
+            _commandHistory.Execute(command);
+
             LayerChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void DuplicateActiveLayer()
         {
             if (CurrentProject?.ActiveLayer == null) return;
-            CurrentProject.DuplicateLayer(CurrentProject.ActiveLayer);
+
+            var duplicate = CurrentProject.ActiveLayer.Clone();
+            duplicate.Name = $"{CurrentProject.ActiveLayer.Name} copy";
+            int index = CurrentProject.Layers.IndexOf(CurrentProject.ActiveLayer);
+
+            var command = new AddLayerCommand(CurrentProject, duplicate, index + 1, "Duplicate Layer");
+            _commandHistory.Execute(command);
+
             LayerChanged?.Invoke(this, EventArgs.Empty);
         }
 

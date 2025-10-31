@@ -1,14 +1,16 @@
 using Pixelium.Core.Models;
 using Pixelium.Core.Processors;
 using SkiaSharp;
+using System;
 
 namespace Pixelium.Core.Commands
 {
-    public class FilterCommand : IImageCommand
+    public class FilterCommand : IImageCommand, IDisposable
     {
         private readonly Layer _layer;
         private readonly IImageProcessor _processor;
         private SKBitmap? _backup; // Nullable field
+        private bool _disposed = false;
 
         public string Name { get; }
 
@@ -23,6 +25,7 @@ namespace Pixelium.Core.Commands
         public bool Execute()
         {
             // Backup original
+            _backup?.Dispose(); // Dispose any existing backup
             _backup = _layer.Content.Copy();
 
             // Apply filter
@@ -33,12 +36,37 @@ namespace Pixelium.Core.Commands
         {
             if (_backup != null)
             {
-                _layer.Content.Dispose();
+                var oldContent = _layer.Content;
                 _layer.Content = _backup;
-                _backup = null;
+                _backup = oldContent; // Keep old content as backup for redo
                 return true;
             }
             return false;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources
+                    _backup?.Dispose();
+                    _backup = null;
+                }
+                _disposed = true;
+            }
+        }
+
+        ~FilterCommand()
+        {
+            Dispose(false);
         }
     }
 }

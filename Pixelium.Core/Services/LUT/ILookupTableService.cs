@@ -11,6 +11,7 @@ namespace Pixelium.Core.Services.LUT
         byte[] GetBrightnessTable(float factor);
         byte[] GetTable(string name);
         byte[] GetGammaTable(double gamma);
+        byte[] GetLogarithmicTable(double c);
 
         bool IsInitialized { get; }
         int TableCount { get; }

@@ -44,7 +44,8 @@ namespace Pixelium.Core.Models
             var backgroundLayer = new Layer(width, height, "Background");
             using var canvas = new SKCanvas(backgroundLayer.Content);
             canvas.Clear(SKColors.White);
-            
+
+            SubscribeToLayerChanges(backgroundLayer);
             Layers.Add(backgroundLayer);
             ActiveLayer = backgroundLayer;
         }
@@ -52,10 +53,25 @@ namespace Pixelium.Core.Models
         public Layer AddLayer(string name = "New Layer")
         {
             var layer = new Layer(Width, Height, name);
+            SubscribeToLayerChanges(layer);
             Layers.Add(layer);
             ActiveLayer = layer;
             OnPropertyChanged(nameof(Layers));
             return layer;
+        }
+
+        private void SubscribeToLayerChanges(Layer layer)
+        {
+            layer.PropertyChanged += (s, e) =>
+            {
+                // When any layer property changes (Visible, Opacity, etc.), notify that layers changed
+                if (e.PropertyName == nameof(Layer.Visible) ||
+                    e.PropertyName == nameof(Layer.Opacity) ||
+                    e.PropertyName == nameof(Layer.Content))
+                {
+                    OnPropertyChanged(nameof(Layers));
+                }
+            };
         }
 
         public void RemoveLayer(Layer layer)
@@ -77,6 +93,7 @@ namespace Pixelium.Core.Models
         public void DuplicateLayer(Layer layer)
         {
             var duplicate = layer.Clone();
+            SubscribeToLayerChanges(duplicate);
             int index = Layers.IndexOf(layer);
             Layers.Insert(index + 1, duplicate);
             ActiveLayer = duplicate;

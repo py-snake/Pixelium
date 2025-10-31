@@ -29,6 +29,9 @@ namespace Pixelium.UI.ViewModels
         private Stretch _imageStretch = Stretch.None;
         private double _imageDisplayWidth = double.NaN;
         private double _imageDisplayHeight = double.NaN;
+        private bool _isNonDestructiveMode = true;
+        private double _viewportWidth = 800;
+        private double _viewportHeight = 600;
 
         public Bitmap? ImageSource
         {
@@ -110,6 +113,26 @@ namespace Pixelium.UI.ViewModels
             }
         }
 
+        public bool IsNonDestructiveMode
+        {
+            get => _isNonDestructiveMode;
+            set
+            {
+                _isNonDestructiveMode = value;
+                _imageService.CurrentEditMode = value ? EditMode.NonDestructive : EditMode.Destructive;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(EditModeDescription));
+
+                // Update undo/redo button states (only work in destructive mode)
+                ((SimpleCommand)UndoCommand).RaiseCanExecuteChanged();
+                ((SimpleCommand)RedoCommand).RaiseCanExecuteChanged();
+            }
+        }
+
+        public string EditModeDescription => _isNonDestructiveMode
+            ? "Non-Destructive: Each edit creates a new layer"
+            : "Destructive: Edits modify active layer (uses undo/redo)";
+
         // File Commands
         public ICommand NewCommand { get; }
         public ICommand OpenCommand { get; }
@@ -156,6 +179,7 @@ namespace Pixelium.UI.ViewModels
         public ICommand CancelGaussianCommand { get; }
         public ICommand ApplySobelCommand { get; }
         public ICommand ApplyLaplaceCommand { get; }
+        public ICommand OpenHarrisDialogCommand { get; }
 
         // Layer Commands
         public ICommand AddLayerCommand { get; }
@@ -291,17 +315,17 @@ namespace Pixelium.UI.ViewModels
             ExitCommand = new SimpleCommand(() => Environment.Exit(0));
 
             // Edit Commands
-            UndoCommand = new SimpleCommand(_imageService.Undo);
-            RedoCommand = new SimpleCommand(_imageService.Redo);
+            UndoCommand = new SimpleCommand(_imageService.Undo, () => _imageService.CanUndo);
+            RedoCommand = new SimpleCommand(_imageService.Redo, () => _imageService.CanRedo);
 
             // View/Zoom Commands
             ZoomInCommand = new SimpleCommand(() => ZoomLevel = Math.Min(ZoomLevel * 1.25, 10.0));
             ZoomOutCommand = new SimpleCommand(() => ZoomLevel = Math.Max(ZoomLevel / 1.25, 0.1));
             ZoomActualCommand = new SimpleCommand(() => { ImageStretch = Stretch.None; ZoomLevel = 1.0; });
-            FitToWidthCommand = new SimpleCommand(() => ImageStretch = Stretch.UniformToFill);
-            FitToHeightCommand = new SimpleCommand(() => ImageStretch = Stretch.Uniform);
-            FitToScreenCommand = new SimpleCommand(() => ImageStretch = Stretch.Uniform);
-            StretchCommand = new SimpleCommand(() => ImageStretch = Stretch.Fill);
+            FitToWidthCommand = new SimpleCommand(FitToWidth);
+            FitToHeightCommand = new SimpleCommand(FitToHeight);
+            FitToScreenCommand = new SimpleCommand(FitToScreen);
+            StretchCommand = new SimpleCommand(() => { ImageStretch = Stretch.Fill; UpdateImageDisplay(); });
 
             // Basic Transformations
             GrayscaleCommand = new SimpleCommand(_imageService.ApplyGrayscale);
@@ -367,6 +391,8 @@ namespace Pixelium.UI.ViewModels
             ApplySobelCommand = new SimpleCommand(_imageService.ApplySobelEdgeDetection);
             ApplyLaplaceCommand = new SimpleCommand(_imageService.ApplyLaplaceEdgeDetection);
 
+            OpenHarrisDialogCommand = new SimpleCommand(OpenHarrisDialog);
+
             // Layer Commands
             AddLayerCommand = new SimpleCommand(() => _imageService.AddNewLayer());
             RemoveLayerCommand = new SimpleCommand(() => _imageService.RemoveActiveLayer());
@@ -381,6 +407,54 @@ namespace Pixelium.UI.ViewModels
         public void SetMainWindow(Window window)
         {
             _mainWindow = window;
+
+            // Set initial size from window
+            UpdateViewportSize();
+        }
+
+        private void UpdateViewportSize()
+        {
+            if (_mainWindow != null)
+            {
+                _viewportWidth = _mainWindow.ClientSize.Width - 250; // Subtract layer panel width
+                _viewportHeight = _mainWindow.ClientSize.Height - 100; // Subtract menu and status bar
+            }
+        }
+
+        private void FitToWidth()
+        {
+            if (_imageService.CurrentProject?.ActiveLayer?.Content == null) return;
+
+            UpdateViewportSize();
+            var bitmap = _imageService.CurrentProject.ActiveLayer.Content;
+            ImageStretch = Stretch.None;
+            ZoomLevel = _viewportWidth / bitmap.Width;
+        }
+
+        private void FitToHeight()
+        {
+            if (_imageService.CurrentProject?.ActiveLayer?.Content == null) return;
+
+            UpdateViewportSize();
+            var bitmap = _imageService.CurrentProject.ActiveLayer.Content;
+            ImageStretch = Stretch.None;
+            ZoomLevel = _viewportHeight / bitmap.Height;
+        }
+
+        private void FitToScreen()
+        {
+            if (_imageService.CurrentProject?.ActiveLayer?.Content == null) return;
+
+            UpdateViewportSize();
+            var bitmap = _imageService.CurrentProject.ActiveLayer.Content;
+            ImageStretch = Stretch.None;
+
+            // Calculate zoom to fit both width and height
+            double widthZoom = _viewportWidth / bitmap.Width;
+            double heightZoom = _viewportHeight / bitmap.Height;
+
+            // Use the smaller zoom to ensure entire image fits
+            ZoomLevel = Math.Min(widthZoom, heightZoom);
         }
 
         private void CreateNew()
@@ -438,6 +512,9 @@ namespace Pixelium.UI.ViewModels
                     {
                         StatusMessage = $"Loaded: {Path.GetFileName(filePath)}";
                         OnProjectChanged(this, EventArgs.Empty);
+
+                        // Auto-fit image to screen
+                        FitToScreen();
                     }
                 }
                 catch (Exception ex)
@@ -497,29 +574,40 @@ namespace Pixelium.UI.ViewModels
 
         private void ShowHistogram()
         {
+            if (_imageService.CurrentProject?.ActiveLayer == null)
+            {
+                StatusMessage = "No image loaded";
+                return;
+            }
+
             var histogram = _imageService.GetHistogram();
-            StatusMessage = $"Histogram calculated - Total pixels: {histogram.TotalPixels}";
-            
-            // Display histogram stats in debug output
-            System.Diagnostics.Debug.WriteLine("=== Histogram Statistics ===");
-            System.Diagnostics.Debug.WriteLine($"Total Pixels: {histogram.TotalPixels}");
-            System.Diagnostics.Debug.WriteLine($"Red Channel - Min: {GetMinValue(histogram.Red)}, Max: {GetMaxValue(histogram.Red)}");
-            System.Diagnostics.Debug.WriteLine($"Green Channel - Min: {GetMinValue(histogram.Green)}, Max: {GetMaxValue(histogram.Green)}");
-            System.Diagnostics.Debug.WriteLine($"Blue Channel - Min: {GetMinValue(histogram.Blue)}, Max: {GetMaxValue(histogram.Blue)}");
+            StatusMessage = $"Histogram calculated - Total pixels: {histogram.TotalPixels:N0}";
+
+            // Create and show simple histogram window
+            var histogramWindow = new Views.SimpleHistogramWindow();
+            histogramWindow.DisplayHistogram(histogram);
+            histogramWindow.Show();
         }
 
-        private int GetMinValue(int[] histogram)
+        private async void OpenHarrisDialog()
         {
-            for (int i = 0; i < histogram.Length; i++)
-                if (histogram[i] > 0) return i;
-            return 0;
-        }
+            if (_imageService.CurrentProject?.ActiveLayer == null)
+            {
+                StatusMessage = "No image loaded";
+                return;
+            }
 
-        private int GetMaxValue(int[] histogram)
-        {
-            for (int i = histogram.Length - 1; i >= 0; i--)
-                if (histogram[i] > 0) return i;
-            return 255;
+            var dialog = new Views.HarrisCornerDialog();
+
+            if (_mainWindow != null)
+            {
+                await dialog.ShowDialog(_mainWindow);
+
+                if (dialog.WasApplied)
+                {
+                    _imageService.ApplyHarrisCornerDetection(dialog.Threshold, dialog.K, dialog.Sigma);
+                }
+            }
         }
 
         private void CreateTestImage()
@@ -562,10 +650,20 @@ namespace Pixelium.UI.ViewModels
             {
                 Dispatcher.UIThread.Post(() =>
                 {
+                    // Subscribe to any new layers that were added
+                    foreach (var layer in _imageService.CurrentProject.Layers)
+                    {
+                        layer.PropertyChanged -= OnLayerPropertyChanged;
+                        layer.PropertyChanged += OnLayerPropertyChanged;
+                    }
+
                     // Flatten and display all layers
                     using var flattened = _imageService.CurrentProject.FlattenLayers();
                     ImageSource = SKBitmapToAvaloniaBitmap(flattened);
                     UpdateImageDisplay();
+
+                    // Update the layer list binding
+                    OnPropertyChanged(nameof(Layers));
                 });
             }
         }
@@ -574,6 +672,20 @@ namespace Pixelium.UI.ViewModels
         {
             Dispatcher.UIThread.Post(() =>
             {
+                // Subscribe to project's Layers property changes
+                if (_imageService.CurrentProject != null)
+                {
+                    _imageService.CurrentProject.PropertyChanged -= OnProjectPropertyChanged;
+                    _imageService.CurrentProject.PropertyChanged += OnProjectPropertyChanged;
+
+                    // Also subscribe directly to each layer's property changes
+                    foreach (var layer in _imageService.CurrentProject.Layers)
+                    {
+                        layer.PropertyChanged -= OnLayerPropertyChanged;
+                        layer.PropertyChanged += OnLayerPropertyChanged;
+                    }
+                }
+
                 OnPropertyChanged(nameof(Layers));
                 if (_imageService.CurrentProject?.ActiveLayer != null)
                 {
@@ -583,11 +695,34 @@ namespace Pixelium.UI.ViewModels
             });
         }
 
+        private void OnProjectPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Project.Layers))
+            {
+                // When any layer property changes, refresh the flattened image
+                Dispatcher.UIThread.Post(() => OnLayerChanged(this, EventArgs.Empty));
+            }
+        }
+
+        private void OnLayerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            // When any layer's Visible or Opacity changes, immediately refresh the image
+            if (e.PropertyName == nameof(Layer.Visible) ||
+                e.PropertyName == nameof(Layer.Opacity))
+            {
+                Dispatcher.UIThread.Post(() => OnLayerChanged(this, EventArgs.Empty));
+            }
+        }
+
         private void OnFilterProcessed(object? sender, FilterProcessedEventArgs e)
         {
             Dispatcher.UIThread.Post(() =>
             {
                 StatusMessage = $"{e.FilterName} applied in {e.ProcessingTimeMs} ms";
+
+                // Update undo/redo button states
+                ((SimpleCommand)UndoCommand).RaiseCanExecuteChanged();
+                ((SimpleCommand)RedoCommand).RaiseCanExecuteChanged();
             });
         }
 

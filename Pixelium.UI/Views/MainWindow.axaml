@@ -63,6 +63,8 @@
                 <Separator/>
                 <MenuItem Header="_Sobel Edge Detection" Command="{Binding ApplySobelCommand}"/>
                 <MenuItem Header="_Laplace Edge Detection" Command="{Binding ApplyLaplaceCommand}"/>
+                <Separator/>
+                <MenuItem Header="_Harris Corner Detection..." Command="{Binding OpenHarrisDialogCommand}"/>
             </MenuItem>
             
             <MenuItem Header="_Layers">
@@ -111,34 +113,73 @@
                               Foreground="White"
                               Margin="0,0,0,10"/>
                     
-                    <TextBlock DockPanel.Dock="Top"
-                              Text="Tip: Select a layer to edit it"
-                              FontSize="11"
-                              Foreground="Gray"
-                              Margin="0,0,0,5"
-                              TextWrapping="Wrap"/>
-                    
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10" Spacing="3">
+                        <TextBlock Text="💡 Layer Tips:"
+                                  FontSize="11"
+                                  Foreground="#4A9EFF"
+                                  FontWeight="SemiBold"/>
+                        <TextBlock Text="• Check/uncheck ☐ to show/hide layers"
+                                  FontSize="10"
+                                  Foreground="Gray"
+                                  TextWrapping="Wrap"/>
+                        <TextBlock Text="• Click layer name to select and edit"
+                                  FontSize="10"
+                                  Foreground="Gray"
+                                  TextWrapping="Wrap"/>
+                        <TextBlock Text="• Each filter creates a new layer!"
+                                  FontSize="10"
+                                  Foreground="Gray"
+                                  TextWrapping="Wrap"/>
+                    </StackPanel>
+
                     <!-- Layer List -->
                     <ListBox DockPanel.Dock="Top"
                             ItemsSource="{Binding Layers}"
                             SelectedItem="{Binding SelectedLayer}"
                             Background="#2A2A2A"
                             Height="350"
-                            Margin="0,0,0,10">
+                            Margin="0,0,0,10"
+                            BorderBrush="#555"
+                            BorderThickness="1">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Margin="5">
-                                    <CheckBox IsChecked="{Binding Visible}" 
-                                             Margin="0,0,10,0"
-                                             ToolTip.Tip="Toggle Visibility"/>
-                                    <TextBlock Text="{Binding Name}" 
-                                              Foreground="White"
-                                              VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding Opacity, StringFormat=' ({0:P0})'}" 
-                                              Foreground="Gray"
-                                              VerticalAlignment="Center"
-                                              FontSize="11"/>
-                                </StackPanel>
+                                <Border Background="Transparent"
+                                       Padding="8,6"
+                                       BorderBrush="#444"
+                                       BorderThickness="0,0,0,1">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <!-- Visibility Toggle -->
+                                        <CheckBox Grid.Column="0"
+                                                 IsChecked="{Binding Visible, Mode=TwoWay}"
+                                                 Margin="0,0,10,0"
+                                                 VerticalAlignment="Center"
+                                                 ToolTip.Tip="Toggle layer visibility (click to show/hide)"/>
+
+                                        <!-- Layer Info -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}"
+                                                      Foreground="White"
+                                                      FontWeight="Medium"
+                                                      FontSize="13"/>
+                                            <TextBlock Text="{Binding Opacity, StringFormat='Opacity: {0:P0}'}"
+                                                      Foreground="#888"
+                                                      FontSize="10"
+                                                      Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <!-- Lock Indicator -->
+                                        <TextBlock Grid.Column="2"
+                                                  Text="{Binding IsLocked}"
+                                                  FontSize="11"
+                                                  Foreground="#FF9800"
+                                                  VerticalAlignment="Center"
+                                                  Margin="10,0,0,0">
+                                            <TextBlock.IsVisible>
+                                                <Binding Path="IsLocked"/>
+                                            </TextBlock.IsVisible>
+                                        </TextBlock>
+                                    </Grid>
+                                </Border>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
@@ -179,16 +220,31 @@
         </Grid>
 
         <!-- Status Bar -->
-        <Border Grid.Row="2" 
-                Background="#007ACC" 
+        <Border Grid.Row="2"
+                Background="#007ACC"
                 Padding="10,5">
-            <Grid ColumnDefinitions="*,Auto">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                 <TextBlock Grid.Column="0"
-                          Text="{Binding StatusMessage}" 
+                          Text="{Binding StatusMessage}"
                           Foreground="White"
                           FontWeight="SemiBold"
                           VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="1"
+
+                <!-- Edit Mode Toggle -->
+                <StackPanel Grid.Column="1"
+                           Orientation="Horizontal"
+                           Margin="10,0">
+                    <CheckBox IsChecked="{Binding IsNonDestructiveMode}"
+                             Foreground="White"
+                             VerticalAlignment="Center"/>
+                    <TextBlock Text="Non-Destructive Mode"
+                              Foreground="White"
+                              Margin="5,0,0,0"
+                              VerticalAlignment="Center"
+                              ToolTip.Tip="{Binding EditModeDescription}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Column="2"
                           Text="{Binding ZoomPercentage, StringFormat='Zoom: {0:F0}%'}"
                           Foreground="White"
                           Margin="10,0,0,0"

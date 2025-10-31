@@ -15,16 +15,7 @@ namespace Pixelium.Core.Processors
 
         protected override byte[] GetLookupTable()
         {
-            var table = new byte[256];
-            double maxLog = Math.Log(1 + 255);
-            
-            for (int i = 0; i < 256; i++)
-            {
-                double result = _c * Math.Log(1 + i) * 255 / maxLog;
-                table[i] = (byte)Math.Min(255, Math.Max(0, result));
-            }
-            
-            return table;
+            return _lutService.GetLogarithmicTable(_c);
         }
     }
 }
