@@ -1,0 +1,142 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        x:Class="Pixelium.UI.Views.HistogramWindow"
+        Title="Histogram Analysis"
+        Width="800" Height="600"
+        Background="#1E1E1E">
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="20">
+
+        <!-- Title -->
+        <TextBlock Grid.Row="0"
+                  Text="Image Histogram"
+                  FontSize="24"
+                  FontWeight="Bold"
+                  Foreground="White"
+                  Margin="0,0,0,20"/>
+
+        <!-- Histogram Display -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="20">
+
+                <!-- Statistics -->
+                <Border Background="#2A2A2A"
+                       Padding="15"
+                       CornerRadius="5"
+                       BorderBrush="#444"
+                       BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Image Statistics"
+                                  FontSize="16"
+                                  FontWeight="SemiBold"
+                                  Foreground="#4A9EFF"/>
+                        <TextBlock x:Name="TotalPixelsText"
+                                  Foreground="White"
+                                  FontSize="13"/>
+                        <TextBlock x:Name="RedStatsText"
+                                  Foreground="#FF6B6B"
+                                  FontSize="13"/>
+                        <TextBlock x:Name="GreenStatsText"
+                                  Foreground="#51CF66"
+                                  FontSize="13"/>
+                        <TextBlock x:Name="BlueStatsText"
+                                  Foreground="#4DABF7"
+                                  FontSize="13"/>
+                        <TextBlock x:Name="LuminosityStatsText"
+                                  Foreground="#CCC"
+                                  FontSize="13"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Red Channel Histogram -->
+                <Border Background="#2A2A2A"
+                       Padding="15"
+                       CornerRadius="5"
+                       BorderBrush="#444"
+                       BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="🔴 Red Channel"
+                                  FontSize="14"
+                                  FontWeight="SemiBold"
+                                  Foreground="#FF6B6B"
+                                  Margin="0,0,0,10"/>
+                        <Canvas x:Name="RedHistogramCanvas"
+                               Width="700"
+                               Height="150"
+                               Background="#1A1A1A"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Green Channel Histogram -->
+                <Border Background="#2A2A2A"
+                       Padding="15"
+                       CornerRadius="5"
+                       BorderBrush="#444"
+                       BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="🟢 Green Channel"
+                                  FontSize="14"
+                                  FontWeight="SemiBold"
+                                  Foreground="#51CF66"
+                                  Margin="0,0,0,10"/>
+                        <Canvas x:Name="GreenHistogramCanvas"
+                               Width="700"
+                               Height="150"
+                               Background="#1A1A1A"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Blue Channel Histogram -->
+                <Border Background="#2A2A2A"
+                       Padding="15"
+                       CornerRadius="5"
+                       BorderBrush="#444"
+                       BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="🔵 Blue Channel"
+                                  FontSize="14"
+                                  FontWeight="SemiBold"
+                                  Foreground="#4DABF7"
+                                  Margin="0,0,0,10"/>
+                        <Canvas x:Name="BlueHistogramCanvas"
+                               Width="700"
+                               Height="150"
+                               Background="#1A1A1A"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Luminosity Histogram -->
+                <Border Background="#2A2A2A"
+                       Padding="15"
+                       CornerRadius="5"
+                       BorderBrush="#444"
+                       BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="⚪ Luminosity (Brightness)"
+                                  FontSize="14"
+                                  FontWeight="SemiBold"
+                                  Foreground="#CCC"
+                                  Margin="0,0,0,10"/>
+                        <Canvas x:Name="LuminosityHistogramCanvas"
+                               Width="700"
+                               Height="150"
+                               Background="#1A1A1A"/>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Close Button -->
+        <Button Grid.Row="2"
+               Content="Close"
+               Command="{Binding CloseCommand}"
+               HorizontalAlignment="Center"
+               Padding="30,10"
+               Margin="0,20,0,0"
+               FontSize="14"/>
+    </Grid>
+</Window>

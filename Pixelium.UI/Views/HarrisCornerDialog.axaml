@@ -1,0 +1,106 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+        x:Class="Pixelium.UI.Views.HarrisCornerDialog"
+        Title="Harris Corner Detection"
+        Width="450" Height="450"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" Margin="20">
+
+        <!-- Title -->
+        <TextBlock Grid.Row="0"
+                   Text="Harris Corner Detection Parameters"
+                   FontSize="16"
+                   FontWeight="Bold"
+                   Margin="0,0,0,20"/>
+
+        <!-- Threshold Slider -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,15">
+            <TextBlock Grid.Column="0" Text="Threshold:" VerticalAlignment="Center" Width="100"/>
+            <Slider Grid.Column="1"
+                    x:Name="ThresholdSlider"
+                    Minimum="0.001"
+                    Maximum="0.1"
+                    Value="0.01"
+                    TickFrequency="0.001"
+                    Margin="10,0"/>
+            <TextBlock Grid.Column="2"
+                       Text="{Binding #ThresholdSlider.Value, StringFormat='{}{0:0.000}'}"
+                       Width="50"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Right"/>
+        </Grid>
+
+        <!-- K Parameter Slider -->
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,15">
+            <TextBlock Grid.Column="0" Text="K Parameter:" VerticalAlignment="Center" Width="100"/>
+            <Slider Grid.Column="1"
+                    x:Name="KSlider"
+                    Minimum="0.01"
+                    Maximum="0.1"
+                    Value="0.04"
+                    TickFrequency="0.01"
+                    Margin="10,0"/>
+            <TextBlock Grid.Column="2"
+                       Text="{Binding #KSlider.Value, StringFormat='{}{0:0.00}'}"
+                       Width="50"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Right"/>
+        </Grid>
+
+        <!-- Sigma Slider -->
+        <Grid Grid.Row="3" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,15">
+            <TextBlock Grid.Column="0" Text="Gaussian σ:" VerticalAlignment="Center" Width="100"/>
+            <Slider Grid.Column="1"
+                    x:Name="SigmaSlider"
+                    Minimum="0.5"
+                    Maximum="3.0"
+                    Value="1.0"
+                    TickFrequency="0.1"
+                    Margin="10,0"/>
+            <TextBlock Grid.Column="2"
+                       Text="{Binding #SigmaSlider.Value, StringFormat='{}{0:0.0}'}"
+                       Width="50"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Right"/>
+        </Grid>
+
+        <!-- Description -->
+        <Border Grid.Row="4"
+                Background="#2A2A2A"
+                BorderBrush="#404040"
+                BorderThickness="1"
+                Padding="10"
+                Margin="0,0,0,20">
+            <TextBlock TextWrapping="Wrap" FontSize="11">
+                <Run Text="Harris Corner Detection finds keypoints (corners) in images."/>
+                <LineBreak/>
+                <LineBreak/>
+                <Run Text="• Threshold: Lower = more corners detected"/>
+                <LineBreak/>
+                <Run Text="• K: Harris parameter (0.04-0.06 typical)"/>
+                <LineBreak/>
+                <Run Text="• Sigma: Gaussian smoothing (higher = less noise)"/>
+            </TextBlock>
+        </Border>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="5"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="10">
+            <Button x:Name="ApplyButton"
+                    Content="Apply"
+                    Width="100"
+                    Background="#007ACC"
+                    Foreground="White"/>
+            <Button x:Name="CancelButton"
+                    Content="Cancel"
+                    Width="100"/>
+        </StackPanel>
+    </Grid>
+</Window>
