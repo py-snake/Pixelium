@@ -1,11 +1,14 @@
 using SkiaSharp;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Pixelium.Core.Processors
 {
     public abstract class ConvolutionProcessor : IImageProcessor
     {
+        public long ProcessingTimeMs { get; private set; }
+
         protected abstract float[,] GetKernel();
         protected virtual float KernelDivisor => 1.0f;
         protected virtual float KernelBias => 0.0f;
@@ -14,6 +17,8 @@ namespace Pixelium.Core.Processors
         {
             if (bitmap == null || bitmap.ColorType != SKColorType.Bgra8888)
                 return false;
+
+            var stopwatch = Stopwatch.StartNew();
 
             var kernel = GetKernel();
             int kSize = kernel.GetLength(0);
@@ -63,6 +68,10 @@ namespace Pixelium.Core.Processors
             });
 
             temp.Dispose();
+
+            stopwatch.Stop();
+            ProcessingTimeMs = stopwatch.ElapsedMilliseconds;
+
             return true;
         }
     }
@@ -128,10 +137,14 @@ namespace Pixelium.Core.Processors
 
     public class SobelEdgeDetector : IImageProcessor
     {
+        public long ProcessingTimeMs { get; private set; }
+
         public unsafe bool Process(SKBitmap bitmap)
         {
             if (bitmap == null || bitmap.ColorType != SKColorType.Bgra8888)
                 return false;
+
+            var stopwatch = Stopwatch.StartNew();
 
             float[,] sobelX = new float[,] {
                 { -1, 0, 1 },
@@ -198,6 +211,10 @@ namespace Pixelium.Core.Processors
             });
 
             temp.Dispose();
+
+            stopwatch.Stop();
+            ProcessingTimeMs = stopwatch.ElapsedMilliseconds;
+
             return true;
         }
     }

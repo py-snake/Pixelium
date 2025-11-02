@@ -69,10 +69,14 @@ namespace Pixelium.Core.Processors
 
     public class HistogramEqualizationProcessor : IImageProcessor
     {
+        public long ProcessingTimeMs { get; private set; }
+
         public unsafe bool Process(SKBitmap bitmap)
         {
             if (bitmap == null || bitmap.ColorType != SKColorType.Bgra8888)
                 return false;
+
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
             var histogram = HistogramProcessor.CalculateHistogram(bitmap);
             int totalPixels = histogram.TotalPixels;
@@ -116,6 +120,9 @@ namespace Pixelium.Core.Processors
                     }
                 }
             });
+
+            stopwatch.Stop();
+            ProcessingTimeMs = stopwatch.ElapsedMilliseconds;
 
             return true;
         }

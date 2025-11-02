@@ -10,6 +10,7 @@ namespace Pixelium.Core.Models
     {
         private string _name = "Untitled";
         private Layer? _activeLayer;
+        private bool _disposed = false;
 
         public string Name 
         { 
@@ -144,9 +145,13 @@ namespace Pixelium.Core.Models
 
         public void Dispose()
         {
-            foreach (var layer in Layers)
+            if (!_disposed)
             {
-                layer.Dispose();
+                foreach (var layer in Layers)
+                {
+                    layer.Dispose();
+                }
+                _disposed = true;
             }
         }
 

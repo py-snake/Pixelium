@@ -23,12 +23,16 @@ namespace Pixelium.Core.Models
             }
         }
 
-        public SKBitmap Content 
-        { 
+        public SKBitmap Content
+        {
             get => _content;
             set
             {
-                _content = value;
+                if (_content != value)
+                {
+                    _content?.Dispose(); // Dispose old bitmap to prevent memory leak
+                    _content = value;
+                }
                 OnPropertyChanged();
             }
         }

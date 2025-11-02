@@ -1,5 +1,7 @@
 using SkiaSharp;
 using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Pixelium.Core.Processors
 {
@@ -13,6 +15,8 @@ namespace Pixelium.Core.Processors
     {
         private readonly FlipDirection _direction;
 
+        public long ProcessingTimeMs { get; private set; }
+
         public FlipProcessor(FlipDirection direction)
         {
             _direction = direction;
@@ -22,6 +26,8 @@ namespace Pixelium.Core.Processors
         {
             if (bitmap == null || bitmap.ColorType != SKColorType.Bgra8888)
                 return false;
+
+            var stopwatch = Stopwatch.StartNew();
 
             int width = bitmap.Width;
             int height = bitmap.Height;
@@ -39,16 +45,20 @@ namespace Pixelium.Core.Processors
                 FlipVertical(ptr, width, height, bytesPerPixel);
             }
 
+            stopwatch.Stop();
+            ProcessingTimeMs = stopwatch.ElapsedMilliseconds;
+
             return true;
         }
 
         private unsafe void FlipHorizontal(byte* ptr, int width, int height, int bytesPerPixel)
         {
             int rowSize = width * bytesPerPixel;
-            byte[] tempRow = new byte[rowSize];
 
-            for (int y = 0; y < height; y++)
+            // Parallelize per row - each row is independent
+            Parallel.For(0, height, y =>
             {
+                byte[] tempRow = new byte[rowSize]; // Thread-local buffer
                 int rowStart = y * rowSize;
 
                 // Copy row to temp
@@ -68,16 +78,17 @@ namespace Pixelium.Core.Processors
                     ptr[rowStart + dstPixel + 2] = tempRow[srcPixel + 2]; // R
                     ptr[rowStart + dstPixel + 3] = tempRow[srcPixel + 3]; // A
                 }
-            }
+            });
         }
 
         private unsafe void FlipVertical(byte* ptr, int width, int height, int bytesPerPixel)
         {
             int rowSize = width * bytesPerPixel;
-            byte[] tempRow = new byte[rowSize];
 
-            for (int y = 0; y < height / 2; y++)
+            // Parallelize row swapping - each pair swap is independent
+            Parallel.For(0, height / 2, y =>
             {
+                byte[] tempRow = new byte[rowSize]; // Thread-local buffer
                 int topRow = y * rowSize;
                 int bottomRow = (height - 1 - y) * rowSize;
 
@@ -88,7 +99,7 @@ namespace Pixelium.Core.Processors
                     ptr[topRow + x] = ptr[bottomRow + x];
                     ptr[bottomRow + x] = tempRow[x];
                 }
-            }
+            });
         }
     }
 }

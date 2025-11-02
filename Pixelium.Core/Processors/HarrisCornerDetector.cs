@@ -1,6 +1,7 @@
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Pixelium.Core.Processors
@@ -23,6 +24,8 @@ namespace Pixelium.Core.Processors
         private readonly int _suppressionRadius;
         private readonly SKColor _markerColor;
         private readonly int _markerSize;
+
+        public long ProcessingTimeMs { get; private set; }
 
         /// <summary>
         /// Creates a Harris corner detector
@@ -53,6 +56,8 @@ namespace Pixelium.Core.Processors
         {
             if (bitmap == null || bitmap.ColorType != SKColorType.Bgra8888)
                 return false;
+
+            var stopwatch = Stopwatch.StartNew();
 
             int width = bitmap.Width;
             int height = bitmap.Height;
@@ -186,6 +191,9 @@ namespace Pixelium.Core.Processors
 
             // Step 7: Draw corner markers on the image
             DrawCornerMarkers(bitmap, corners);
+
+            stopwatch.Stop();
+            ProcessingTimeMs = stopwatch.ElapsedMilliseconds;
 
             return true;
         }

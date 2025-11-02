@@ -1,4 +1,5 @@
 using SkiaSharp;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Pixelium.Core.Processors;  // Add this using for IImageProcessor
 
@@ -7,6 +8,8 @@ namespace Pixelium.Core.Services.LUT
     public abstract class LutProcessorBase : IImageProcessor  // Explicitly implement the interface
     {
         protected readonly ILookupTableService _lutService;
+
+        public long ProcessingTimeMs { get; private set; }
 
         protected LutProcessorBase(ILookupTableService lutService)
         {
@@ -20,6 +23,8 @@ namespace Pixelium.Core.Services.LUT
         {
             if (bitmap == null || bitmap.ColorType != SKColorType.Bgra8888)
                 return false;
+
+            var stopwatch = Stopwatch.StartNew();
 
             var lut = GetLookupTable();
             if (lut == null) return false;
@@ -39,6 +44,9 @@ namespace Pixelium.Core.Services.LUT
                     // Alpha remains unchanged
                 }
             });
+
+            stopwatch.Stop();
+            ProcessingTimeMs = stopwatch.ElapsedMilliseconds;
 
             return true;
         }

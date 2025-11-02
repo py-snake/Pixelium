@@ -9,10 +9,11 @@ using System.IO;
 
 namespace Pixelium.Core.Services
 {
-    public class ImageService
+    public class ImageService : IDisposable
     {
         private readonly CommandHistory _commandHistory;
         private readonly ILookupTableService _lutService;
+        private bool _disposed = false;
 
         public Project? CurrentProject { get; private set; }
         public EditMode CurrentEditMode { get; set; } = EditMode.NonDestructive;
@@ -34,6 +35,7 @@ namespace Pixelium.Core.Services
         {
             CurrentProject?.Dispose();
             CurrentProject = new Project(width, height) { Name = name };
+            _commandHistory.Clear(); // Clear undo/redo history for new project
             ProjectChanged?.Invoke(this, EventArgs.Empty);
             LayerChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -98,7 +100,7 @@ namespace Pixelium.Core.Services
             if (CurrentProject?.ActiveLayer?.Content == null || CurrentProject.ActiveLayer.IsLocked)
                 return;
 
-            var stopwatch = Stopwatch.StartNew();
+            var totalStopwatch = Stopwatch.StartNew();
 
             if (CurrentEditMode == EditMode.NonDestructive)
             {
@@ -121,12 +123,14 @@ namespace Pixelium.Core.Services
                 _commandHistory.Execute(command);
             }
 
-            stopwatch.Stop();
+            totalStopwatch.Stop();
 
+            // Report both pure processing time and total operation time
             FilterProcessed?.Invoke(this, new FilterProcessedEventArgs
             {
                 FilterName = filterName,
-                ProcessingTimeMs = stopwatch.ElapsedMilliseconds
+                ProcessingTimeMs = processor.ProcessingTimeMs,
+                TotalTimeMs = totalStopwatch.ElapsedMilliseconds
             });
 
             LayerChanged?.Invoke(this, EventArgs.Empty);
@@ -217,16 +221,9 @@ namespace Pixelium.Core.Services
             var upperLayer = CurrentProject.ActiveLayer;
             var lowerLayer = CurrentProject.Layers[activeIndex - 1];
 
-            using var canvas = new SKCanvas(lowerLayer.Content);
-            using var paint = new SKPaint
-            {
-                BlendMode = upperLayer.BlendMode,
-                Color = SKColors.White.WithAlpha((byte)(upperLayer.Opacity * 255))
-            };
-            canvas.DrawBitmap(upperLayer.Content, 0, 0, paint);
+            var command = new MergeLayerDownCommand(CurrentProject, upperLayer, lowerLayer);
+            _commandHistory.Execute(command);
 
-            CurrentProject.RemoveLayer(upperLayer);
-            CurrentProject.ActiveLayer = lowerLayer;
             LayerChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -250,6 +247,16 @@ namespace Pixelium.Core.Services
             if (_commandHistory.Redo())
             {
                 LayerChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _commandHistory?.Dispose();
+                CurrentProject?.Dispose();
+                _disposed = true;
             }
         }
     }

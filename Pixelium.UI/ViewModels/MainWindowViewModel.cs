@@ -138,6 +138,9 @@ namespace Pixelium.UI.ViewModels
         public ICommand OpenCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand ExitCommand { get; }
+        public ICommand CreateSample1Command { get; }
+        public ICommand CreateSample2Command { get; }
+        public ICommand CreateSample3Command { get; }
 
         // Edit Commands
         public ICommand UndoCommand { get; }
@@ -313,6 +316,9 @@ namespace Pixelium.UI.ViewModels
             OpenCommand = new SimpleCommand(async () => await OpenImage());
             SaveCommand = new SimpleCommand(async () => await SaveImage());
             ExitCommand = new SimpleCommand(() => Environment.Exit(0));
+            CreateSample1Command = new SimpleCommand(CreateSample1);
+            CreateSample2Command = new SimpleCommand(CreateSample2);
+            CreateSample3Command = new SimpleCommand(CreateSample3);
 
             // Edit Commands
             UndoCommand = new SimpleCommand(_imageService.Undo, () => _imageService.CanUndo);
@@ -401,7 +407,7 @@ namespace Pixelium.UI.ViewModels
 
             // Initialize with test project
             CreateNew();
-            CreateTestImage();
+            CreateSample1();
         }
 
         public void SetMainWindow(Window window)
@@ -610,8 +616,9 @@ namespace Pixelium.UI.ViewModels
             }
         }
 
-        private void CreateTestImage()
+        private void CreateSample1()
         {
+            CreateNew();
             if (_imageService.CurrentProject?.ActiveLayer?.Content != null)
             {
                 var bitmap = _imageService.CurrentProject.ActiveLayer.Content;
@@ -640,6 +647,117 @@ namespace Pixelium.UI.ViewModels
 
                 canvas.DrawRect(new SKRect(50, 200, 450, 400), gradientPaint);
 
+                StatusMessage = "Sample 1: Gradient & Text - Good for general filter testing";
+                Dispatcher.UIThread.Post(() => OnLayerChanged(this, EventArgs.Empty));
+            }
+        }
+
+        private void CreateSample2()
+        {
+            CreateNew();
+            if (_imageService.CurrentProject?.ActiveLayer?.Content != null)
+            {
+                var bitmap = _imageService.CurrentProject.ActiveLayer.Content;
+                using var canvas = new SKCanvas(bitmap);
+
+                canvas.Clear(new SKColor(240, 240, 240));
+
+                // Draw checkerboard pattern (good for edge detection)
+                using var blackPaint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+                using var whitePaint = new SKPaint { Color = SKColors.White, IsAntialias = false };
+
+                int squareSize = 60;
+                for (int y = 0; y < bitmap.Height; y += squareSize)
+                {
+                    for (int x = 0; x < bitmap.Width; x += squareSize)
+                    {
+                        bool isBlack = ((x / squareSize) + (y / squareSize)) % 2 == 0;
+                        canvas.DrawRect(x, y, squareSize, squareSize, isBlack ? blackPaint : whitePaint);
+                    }
+                }
+
+                // Draw colored circles (good for Harris corner detection)
+                using var redPaint = new SKPaint { Color = SKColors.Red, IsAntialias = true, Style = SKPaintStyle.Fill };
+                using var greenPaint = new SKPaint { Color = SKColors.Green, IsAntialias = true, Style = SKPaintStyle.Fill };
+                using var bluePaint = new SKPaint { Color = SKColors.Blue, IsAntialias = true, Style = SKPaintStyle.Fill };
+                using var yellowPaint = new SKPaint { Color = SKColors.Yellow, IsAntialias = true, Style = SKPaintStyle.Fill };
+
+                canvas.DrawCircle(200, 150, 80, redPaint);
+                canvas.DrawCircle(600, 150, 80, greenPaint);
+                canvas.DrawCircle(200, 450, 80, bluePaint);
+                canvas.DrawCircle(600, 450, 80, yellowPaint);
+
+                // Draw rectangles with different colors (good for various filters)
+                using var magentaPaint = new SKPaint { Color = SKColors.Magenta, IsAntialias = true };
+                using var cyanPaint = new SKPaint { Color = SKColors.Cyan, IsAntialias = true };
+
+                canvas.DrawRect(350, 100, 100, 150, magentaPaint);
+                canvas.DrawRect(350, 350, 100, 150, cyanPaint);
+
+                StatusMessage = "Sample 2: Geometric Shapes - Good for edge detection & Harris corners";
+                Dispatcher.UIThread.Post(() => OnLayerChanged(this, EventArgs.Empty));
+            }
+        }
+
+        private void CreateSample3()
+        {
+            CreateNew();
+            if (_imageService.CurrentProject?.ActiveLayer?.Content != null)
+            {
+                var bitmap = _imageService.CurrentProject.ActiveLayer.Content;
+                using var canvas = new SKCanvas(bitmap);
+
+                canvas.Clear(SKColors.White);
+
+                // Create radial gradient background (good for histogram equalization)
+                using var radialPaint = new SKPaint
+                {
+                    Shader = SKShader.CreateRadialGradient(
+                        new SKPoint(400, 300),
+                        300,
+                        new[] { new SKColor(255, 200, 100), new SKColor(100, 150, 255), new SKColor(50, 50, 50) },
+                        new float[] { 0, 0.5f, 1 },
+                        SKShaderTileMode.Clamp)
+                };
+                canvas.DrawRect(0, 0, bitmap.Width, bitmap.Height, radialPaint);
+
+                // Draw brightness levels (good for gamma/logarithmic testing)
+                using var paint = new SKPaint { IsAntialias = true };
+                for (int i = 0; i < 8; i++)
+                {
+                    int brightness = (i * 255) / 7;
+                    paint.Color = new SKColor((byte)brightness, (byte)brightness, (byte)brightness);
+                    canvas.DrawRect(50 + i * 90, 50, 80, 80, paint);
+                }
+
+                // Draw RGB color bars (good for grayscale testing)
+                using var redPaint = new SKPaint { Color = new SKColor(255, 0, 0), IsAntialias = true };
+                using var greenPaint = new SKPaint { Color = new SKColor(0, 255, 0), IsAntialias = true };
+                using var bluePaint = new SKPaint { Color = new SKColor(0, 0, 255), IsAntialias = true };
+
+                canvas.DrawRect(100, 450, 150, 100, redPaint);
+                canvas.DrawRect(325, 450, 150, 100, greenPaint);
+                canvas.DrawRect(550, 450, 150, 100, bluePaint);
+
+                // Draw text with shadow (good for blur testing)
+                using var shadowPaint = new SKPaint
+                {
+                    Color = new SKColor(0, 0, 0, 128),
+                    IsAntialias = true,
+                    TextSize = 36
+                };
+                using var textPaint = new SKPaint
+                {
+                    Color = SKColors.White,
+                    IsAntialias = true,
+                    TextSize = 36,
+                    FakeBoldText = true
+                };
+
+                canvas.DrawText("COLOR TEST PATTERN", 205, 270, shadowPaint);
+                canvas.DrawText("COLOR TEST PATTERN", 200, 265, textPaint);
+
+                StatusMessage = "Sample 3: Color Test Pattern - Good for histogram, gamma & color filters";
                 Dispatcher.UIThread.Post(() => OnLayerChanged(this, EventArgs.Empty));
             }
         }
@@ -692,6 +810,10 @@ namespace Pixelium.UI.ViewModels
                     SelectedLayer = _imageService.CurrentProject.ActiveLayer;
                 }
                 UpdateImageDisplay();
+
+                // Update undo/redo button states (should be disabled for new/loaded projects)
+                ((SimpleCommand)UndoCommand).RaiseCanExecuteChanged();
+                ((SimpleCommand)RedoCommand).RaiseCanExecuteChanged();
             });
         }
 
@@ -718,7 +840,7 @@ namespace Pixelium.UI.ViewModels
         {
             Dispatcher.UIThread.Post(() =>
             {
-                StatusMessage = $"{e.FilterName} applied in {e.ProcessingTimeMs} ms";
+                StatusMessage = $"{e.FilterName} applied: {e.ProcessingTimeMs}ms (processing) / {e.TotalTimeMs}ms (total)";
 
                 // Update undo/redo button states
                 ((SimpleCommand)UndoCommand).RaiseCanExecuteChanged();

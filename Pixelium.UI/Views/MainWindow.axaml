@@ -13,40 +13,69 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
+    <Window.KeyBindings>
+        <!-- File Operations -->
+        <KeyBinding Gesture="Ctrl+N" Command="{Binding NewCommand}"/>
+        <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenCommand}"/>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}"/>
+
+        <!-- Edit Operations -->
+        <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoCommand}"/>
+        <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoCommand}"/>
+
+        <!-- View/Zoom Operations -->
+        <KeyBinding Gesture="Ctrl+Add" Command="{Binding ZoomInCommand}"/>
+        <KeyBinding Gesture="Ctrl+Subtract" Command="{Binding ZoomOutCommand}"/>
+        <KeyBinding Gesture="Ctrl+D0" Command="{Binding ZoomActualCommand}"/>
+        <KeyBinding Gesture="Ctrl+F" Command="{Binding FitToScreenCommand}"/>
+
+        <!-- Image Operations -->
+        <KeyBinding Gesture="Ctrl+G" Command="{Binding GrayscaleCommand}"/>
+        <KeyBinding Gesture="Ctrl+I" Command="{Binding InvertCommand}"/>
+        <KeyBinding Gesture="Ctrl+H" Command="{Binding FlipHorizontalCommand}"/>
+        <KeyBinding Gesture="Ctrl+Shift+H" Command="{Binding FlipVerticalCommand}"/>
+    </Window.KeyBindings>
+
     <Grid RowDefinitions="Auto,*,Auto">
         
         <!-- Menu Bar -->
         <Menu Grid.Row="0">
             <MenuItem Header="_File">
-                <MenuItem Header="_New" Command="{Binding NewCommand}"/>
-                <MenuItem Header="_Open..." Command="{Binding OpenCommand}"/>
-                <MenuItem Header="_Save..." Command="{Binding SaveCommand}"/>
+                <MenuItem Header="_New" Command="{Binding NewCommand}" InputGesture="Ctrl+N"/>
+                <MenuItem Header="_Open..." Command="{Binding OpenCommand}" InputGesture="Ctrl+O"/>
+                <MenuItem Header="_Save..." Command="{Binding SaveCommand}" InputGesture="Ctrl+S"/>
                 <Separator/>
-                <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
+                <MenuItem Header="New Sample Image">
+                    <MenuItem Header="Sample 1: Gradient &amp; Text" Command="{Binding CreateSample1Command}"/>
+                    <MenuItem Header="Sample 2: Geometric Shapes" Command="{Binding CreateSample2Command}"/>
+                    <MenuItem Header="Sample 3: Color Test Pattern" Command="{Binding CreateSample3Command}"/>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="E_xit" Command="{Binding ExitCommand}" InputGesture="Alt+F4"/>
             </MenuItem>
-            
+
             <MenuItem Header="_Edit">
-                <MenuItem Header="_Undo" Command="{Binding UndoCommand}"/>
-                <MenuItem Header="_Redo" Command="{Binding RedoCommand}"/>
+                <MenuItem Header="_Undo" Command="{Binding UndoCommand}" InputGesture="Ctrl+Z"/>
+                <MenuItem Header="_Redo" Command="{Binding RedoCommand}" InputGesture="Ctrl+Y"/>
             </MenuItem>
             
             <MenuItem Header="_View">
-                <MenuItem Header="Zoom _In" Command="{Binding ZoomInCommand}"/>
-                <MenuItem Header="Zoom _Out" Command="{Binding ZoomOutCommand}"/>
-                <MenuItem Header="Zoom _100%" Command="{Binding ZoomActualCommand}"/>
+                <MenuItem Header="Zoom _In" Command="{Binding ZoomInCommand}" InputGesture="Ctrl+Add"/>
+                <MenuItem Header="Zoom _Out" Command="{Binding ZoomOutCommand}" InputGesture="Ctrl+Subtract"/>
+                <MenuItem Header="Zoom _100%" Command="{Binding ZoomActualCommand}" InputGesture="Ctrl+D0"/>
                 <Separator/>
                 <MenuItem Header="Fit to _Width" Command="{Binding FitToWidthCommand}"/>
                 <MenuItem Header="Fit to _Height" Command="{Binding FitToHeightCommand}"/>
-                <MenuItem Header="Fit to _Screen" Command="{Binding FitToScreenCommand}"/>
+                <MenuItem Header="Fit to _Screen" Command="{Binding FitToScreenCommand}" InputGesture="Ctrl+F"/>
                 <MenuItem Header="_Stretch" Command="{Binding StretchCommand}"/>
             </MenuItem>
             
             <MenuItem Header="_Image">
-                <MenuItem Header="_Grayscale" Command="{Binding GrayscaleCommand}"/>
-                <MenuItem Header="_Invert" Command="{Binding InvertCommand}"/>
+                <MenuItem Header="_Grayscale" Command="{Binding GrayscaleCommand}" InputGesture="Ctrl+G"/>
+                <MenuItem Header="_Invert" Command="{Binding InvertCommand}" InputGesture="Ctrl+I"/>
                 <Separator/>
-                <MenuItem Header="Flip _Horizontal" Command="{Binding FlipHorizontalCommand}"/>
-                <MenuItem Header="Flip _Vertical" Command="{Binding FlipVerticalCommand}"/>
+                <MenuItem Header="Flip _Horizontal" Command="{Binding FlipHorizontalCommand}" InputGesture="Ctrl+H"/>
+                <MenuItem Header="Flip _Vertical" Command="{Binding FlipVerticalCommand}" InputGesture="Ctrl+Shift+H"/>
             </MenuItem>
             
             <MenuItem Header="_Adjustments">
@@ -68,7 +97,8 @@
             </MenuItem>
             
             <MenuItem Header="_Layers">
-                <MenuItem Header="_New Layer" Command="{Binding AddLayerCommand}"/>
+                <!-- <MenuItem Header="_New Layer" Command="{Binding AddLayerCommand}"/> -->
+                <!-- Commented out: Empty layers are not useful without drawing tools. Uncomment when brush/paint features are added -->
                 <MenuItem Header="_Duplicate Layer" Command="{Binding DuplicateLayerCommand}"/>
                 <MenuItem Header="_Remove Layer" Command="{Binding RemoveLayerCommand}"/>
                 <MenuItem Header="_Merge Down" Command="{Binding MergeDownCommand}"/>
@@ -106,31 +136,12 @@
                     BorderThickness="1,1,0,0"
                     Padding="10">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" 
-                              Text="Layers" 
-                              FontSize="16" 
+                    <TextBlock DockPanel.Dock="Top"
+                              Text="Layers"
+                              FontSize="16"
                               FontWeight="Bold"
                               Foreground="White"
                               Margin="0,0,0,10"/>
-                    
-                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10" Spacing="3">
-                        <TextBlock Text="💡 Layer Tips:"
-                                  FontSize="11"
-                                  Foreground="#4A9EFF"
-                                  FontWeight="SemiBold"/>
-                        <TextBlock Text="• Check/uncheck ☐ to show/hide layers"
-                                  FontSize="10"
-                                  Foreground="Gray"
-                                  TextWrapping="Wrap"/>
-                        <TextBlock Text="• Click layer name to select and edit"
-                                  FontSize="10"
-                                  Foreground="Gray"
-                                  TextWrapping="Wrap"/>
-                        <TextBlock Text="• Each filter creates a new layer!"
-                                  FontSize="10"
-                                  Foreground="Gray"
-                                  TextWrapping="Wrap"/>
-                    </StackPanel>
 
                     <!-- Layer List -->
                     <ListBox DockPanel.Dock="Top"
@@ -169,15 +180,13 @@
 
                                         <!-- Lock Indicator -->
                                         <TextBlock Grid.Column="2"
-                                                  Text="{Binding IsLocked}"
-                                                  FontSize="11"
+                                                  Text="🔒"
+                                                  FontSize="14"
                                                   Foreground="#FF9800"
                                                   VerticalAlignment="Center"
-                                                  Margin="10,0,0,0">
-                                            <TextBlock.IsVisible>
-                                                <Binding Path="IsLocked"/>
-                                            </TextBlock.IsVisible>
-                                        </TextBlock>
+                                                  Margin="10,0,0,0"
+                                                  ToolTip.Tip="Layer is locked"
+                                                  IsVisible="{Binding IsLocked}"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -194,22 +203,23 @@
 
                     <!-- Layer Controls -->
                     <StackPanel DockPanel.Dock="Bottom" Spacing="5">
-                        <Button Content="➕ Add Layer" 
+                        <!-- <Button Content="➕ Add Layer"
                                Command="{Binding AddLayerCommand}"
                                HorizontalAlignment="Stretch"
                                HorizontalContentAlignment="Left"
-                               Padding="8"/>
-                        <Button Content="📋 Duplicate Layer" 
+                               Padding="8"/> -->
+                        <!-- Commented out: Empty layers not useful without drawing tools -->
+                        <Button Content="📋 Duplicate Layer"
                                Command="{Binding DuplicateLayerCommand}"
                                HorizontalAlignment="Stretch"
                                HorizontalContentAlignment="Left"
                                Padding="8"/>
-                        <Button Content="🗑️ Remove Layer" 
+                        <Button Content="🗑️ Remove Layer"
                                Command="{Binding RemoveLayerCommand}"
                                HorizontalAlignment="Stretch"
                                HorizontalContentAlignment="Left"
                                Padding="8"/>
-                        <Button Content="⬇️ Merge Down" 
+                        <Button Content="⬇️ Merge Down"
                                Command="{Binding MergeDownCommand}"
                                HorizontalAlignment="Stretch"
                                HorizontalContentAlignment="Left"

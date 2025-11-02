@@ -1,4 +1,6 @@
 using SkiaSharp;
+using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Pixelium.Core.Processors;
 
@@ -7,6 +9,8 @@ namespace Pixelium.Core.Services.LUT
     public abstract class MultiChannelLutProcessor : IImageProcessor
     {
         protected readonly ILookupTableService _lutService;
+
+        public long ProcessingTimeMs { get; private set; }
 
         protected MultiChannelLutProcessor(ILookupTableService lutService)
         {
@@ -21,6 +25,8 @@ namespace Pixelium.Core.Services.LUT
         {
             if (bitmap == null || bitmap.ColorType != SKColorType.Bgra8888)
                 return false;
+
+            var stopwatch = Stopwatch.StartNew();
 
             var redLut = GetRedLookupTable();
             var greenLut = GetGreenLookupTable();
@@ -40,18 +46,19 @@ namespace Pixelium.Core.Services.LUT
                     byte blue = rowPtr[x];
 
                     // Grayscale calculation: 0.299*R + 0.587*G + 0.114*B
-                    byte gray = (byte)(
-                        redLut[red] +    // 0.299 * R
-                        greenLut[green] + // 0.587 * G  
-                        blueLut[blue]     // 0.114 * B
-                    );
+                    // Use int to safely sum, then clamp to prevent overflow from rounding
+                    int grayValue = redLut[red] + greenLut[green] + blueLut[blue];
+                    byte gray = (byte)Math.Min(255, grayValue);
 
                     rowPtr[x] = gray;     // Blue
-                    rowPtr[x + 1] = gray; // Green  
+                    rowPtr[x + 1] = gray; // Green
                     rowPtr[x + 2] = gray; // Red
                     // Alpha remains unchanged
                 }
             });
+
+            stopwatch.Stop();
+            ProcessingTimeMs = stopwatch.ElapsedMilliseconds;
 
             return true;
         }

@@ -36,9 +36,10 @@ namespace Pixelium.Core.Commands
         {
             if (_backup != null)
             {
-                var oldContent = _layer.Content;
-                _layer.Content = _backup;
-                _backup = oldContent; // Keep old content as backup for redo
+                // Make a copy of backup before setting (setter will dispose old content)
+                var restoredContent = _backup.Copy();
+                _layer.Content = restoredContent;
+                // Backup is still intact for potential redo
                 return true;
             }
             return false;
