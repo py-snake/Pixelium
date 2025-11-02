@@ -5,6 +5,7 @@
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
         x:Class="Pixelium.UI.Views.HarrisCornerDialog"
         Title="Harris Corner Detection"
+        Icon="/Assets/icon-256.png"
         Width="450" Height="450"
         WindowStartupLocation="CenterOwner"
         CanResize="False">
