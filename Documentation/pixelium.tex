@@ -1,0 +1,786 @@
+\documentclass[12pt, a4paper]{report}
+\usepackage[magyar]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{float}
+\usepackage{amsmath}
+
+\geometry{a4paper, margin=2.5cm}
+
+% Színek a kódblokkokhoz
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+% Cím formázás
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\Huge\bfseries Pixelium Képszerkesztő\par}
+    \vspace{1cm}
+    {\LARGE Dokumentáció\par}
+    \vspace{2cm}
+    \includegraphics[width=0.4\textwidth]{icon.jpeg}\par
+    \vfill
+    {\large \today\par}
+\end{titlepage}
+
+\tableofcontents
+
+\chapter{Bevezetés}
+\section{A Projekt Célja}
+A Pixelium egy nagy teljesítményű, többplatformos képszerkesztő alkalmazás, amely a .NET 9.0 és Avalonia UI technológiákra épül. Célja, hogy alapvető képszerkesztési funkciókat biztosítson gyors és modern felületen, a párhuzamosság és gyorsítótárak kihasználásával.
+
+\section{Főbb Jellemzők}
+\begin{itemize}
+    \item \textbf{Nagy teljesítmény}: Párhuzamos feldolgozés és memória-optimalizálás
+    \item \textbf{Multiplatform}: Linux, Windows, macOS támogatás
+    \item \textbf{Réteges szerkesztés}: Rétegkezelésen alapuló szerkesztés
+    \item \textbf{Szűrők}: Gauss elmosás, élérzékelés, sarokdetektálás
+    \item \textbf{Hisztogram analízis}: Hisztogram generálás a bemeneti képről
+    \item \textbf{Visszavonás/ismétlés}: Undo/Redo művelet
+\end{itemize}
+
+\chapter{Telepítés és Futtatás}
+\section{Előfeltételek}
+A Pixelium Fedora 42 Linux rendszeren került fejlesztésre, szem előtt tartva a keretrendszerek kiválasztásakor a multiplatform támogatást. A program futtatható Linux, Windows és Mac rendszereken is.
+
+\section{Fordítás a Forráskódból}
+
+A Pixelium fordításához a .NET 9.0 SDK-ra van szükség.
+
+\subsection{Gyors fordítás}
+\begin{lstlisting}[language=bash]
+dotnet build Pixelium.sln
+
+dotnet run --project Pixelium.UI/Pixelium.UI.csproj
+\end{lstlisting}
+
+\subsection{Többplatformos fordítás}
+A \texttt{build-all.sh} szkript segítségével minden támogatott platformra elkészíthetők a bináris fájlok:
+
+\begin{lstlisting}[language=bash]
+./build-all.sh
+\end{lstlisting}
+
+A fordítási eredmények a \texttt{builds/} könyvtárban találhatók gzip állományba csomagolva.
+
+\section{Támogatott Platformok}
+\begin{itemize}
+    \item \textbf{Linux}: x64, ARM64 architektúrák
+    \item \textbf{Windows}: 10/11 (x64, ARM64), Önálló egyetlen EXE fájl vagy EXE és DLL-ek
+    \item \textbf{macOS}: Intel és Apple Silicon processzorok, (x64, ARM64)
+\end{itemize}
+
+\section{Az Alkalmazás Indítása}
+
+\subsection{Forráskódból történő indítás}
+
+Az alkalmazás forráskódból a következő módon indítható el:
+
+\begin{enumerate}
+    \item Terminálablak megnyitása
+    \item Navigáció a projekt könyvtárába
+    \item Parancs futtatása: \texttt{dotnet run --project Pixelium.UI}
+\end{enumerate}
+
+\subsection{Előre buildelt binárisok indítása}
+
+A kész, buildelt binárisok esetében az alkalmazás elindul a forráskód vagy telepítés nélkül.
+
+\chapter{Felhasználói Útmutató}
+\section{Kezdő lépések}
+\subsection{Alkalmazás indítása}
+A program indítása után egy beépített mintakép jelenik meg, ahol lehet tesztelni a szűrőket. A későbbiekben másik beépített minta kép is választható, vagy a tallózással megnyitható egy meglévő kép.
+
+\subsection{Kép megnyitása}
+A kép megnyitásához több lehetőség is rendelkezésre áll:
+\begin{itemize}
+    \item A \textbf{Fájl > Megnyitás} menüpont kiválasztása
+    \item A \texttt{Ctrl+O} billentyűkombináció használata
+    \item A támogatott képformátumok közül választás (PNG, JPEG, BMP)
+\end{itemize}
+
+\subsection{Mintaképek betöltése}
+Az alkalmazás beépített mintaképeket tartalmaz, amelyek megkönnyítik a különböző funkciók tesztelését:
+\begin{itemize}
+    \item \textbf{Minta 1: Gradiens és szöveg} - Általános szűrőtesztelésre
+    \item \textbf{Minta 2: Geometriai formák} - Él- és sarokdetektálás vizsgálatára
+    \item \textbf{Minta 3: Színteszt mintázat} - Hisztogram és gamma korrekció tesztelésére
+\end{itemize}
+
+\section{A Felület Ismertetése}
+Az alkalmazás felülete több fő területre oszlik:
+\begin{itemize}
+    \item \textbf{Menüsor}: Az alapvető műveletek és beállítások elérésére szolgál
+    \item \textbf{Rétegek panel}: A rétegkezelés és tulajdonságok kezelésére szolgál
+    \item \textbf{Munkaterület}: A képek szerkesztésének és megjelenítésének fő területe
+\end{itemize}
+
+\section{Képszerkesztés és Szűrők Alkalmazása}
+\subsection{Alapvető Szerkesztések}
+\begin{itemize}
+    \item \textbf{Szürkeárnyalatos} (\texttt{Ctrl+G}): A kép szürkeárnyalatosra konvertálása
+    \item \textbf{Invertálás} (\texttt{Ctrl+I}): A kép színeinek invertálása
+    \item \textbf{Tükrözés} (\texttt{Ctrl+H}): A kép vízszintes tükrözése
+    \item \textbf{Gamma korrekció}: A kép fényerejének beállítása
+    \item \textbf{Logaritmikus transzformáció}: Dinamikatartomány tömörítése
+\end{itemize}
+
+\subsection{Speciális Szűrők}
+\subsubsection{Elmosási szűrők}
+Az elmosási szűrők a kép simítására szolgálnak:
+\begin{itemize}
+    \item \textbf{Box Filter}: Gyors átlagolás alapú elmosás
+    \item \textbf{Gaussian Blur}: Sima elmosás testreszabható kernel mérettel (3x3, 5x5, 7x7)
+\end{itemize}
+
+\subsubsection{Élérzékelés}
+Az élérzékelő szűrők a kép éleinek detektálására szolgálnak:
+\begin{itemize}
+    \item \textbf{Sobel éldetektor}: Sobel operátor alapú élérzékelés
+    \item \textbf{Laplace éldetektor}: Laplace kernel alapú élérzékelés
+\end{itemize}
+
+\subsubsection{Harris Sarokérzékelés}
+A Harris sarokdetektálás használata a következő lépésekből áll:
+\begin{enumerate}
+    \item A \textbf{Szűrők > Harris Sarokérzékelés} menüpont kiválasztása
+    \item A paraméterek beállítása:
+    \begin{itemize}
+        \item \textbf{Érzékenység (k)}: A sarokválasz szabályozása
+        \item \textbf{Küszöbérték}: A minimális sarokerősség (0-255 tartományban)
+        \item \textbf{Gauss szigma}: Az előfeldolgozó elmosás erőssége
+    \end{itemize}
+    \item Az \textbf{Alkalmaz} gomb megnyomása a sarkok észleléséhez
+\end{enumerate}
+
+\section{Hisztogram Analízis}
+\subsection{Hisztogram megjelenítése}
+A hisztogram megjelenítése a következőképpen történik:
+\begin{itemize}
+    \item A \textbf{Hisztogram mutatása} menüpont kiválasztása
+    \item A luminancia hisztogramjának megjelenítése
+\end{itemize}
+
+\subsection{Hisztogram kiegyenlítés}
+A hisztogram kiegyenlítés végrehajtása:
+\begin{enumerate}
+    \item A \textbf{Hisztogram kiegyenlítés} menüpont kiválasztása
+    \item A művelet automatikusan javítja a kép kontrasztját
+    \item Az eredmény ellenőrizhető a hisztogram ablak újbóli megnyitásával
+\end{enumerate}
+
+\section{Rétegek Kezelése}
+\subsection{Rétegek létrehozása és kezelése}
+A rétegek kezelése a következő műveleteket tartalmazza:
+\begin{itemize}
+    \item \textbf{Új réteg}: Filter alkalmazásával egy új réteg jön létre a rétegek panelen
+    \item \textbf{Destruktív szerkesztési mód}: Filter alkalmazásakor nem jön létre új réteg, hanem a meglévőben megy végbe a szerkesztés
+    \item \textbf{Rétegek egyesítése}: A réteg kijelölése után az "Egyesítés" gomb használata
+    \item \textbf{Duplikálás}: A réteg kijelölése után a "Duplikálás" gomb használata
+    \item \textbf{Elrejtés}: A rétegen a checkboxra kattintás
+    \item \textbf{Törlés}: A réteg kijelölése után a "Törlés" gomb használata
+\end{itemize}
+
+\subsection{Réteg tulajdonságok}
+Az egyes rétegek tulajdonságainak kezelése:
+\begin{itemize}
+    \item \textbf{Láthatóság}: A checkboxra kattintással kapcsolható a réteg mutatása vagy elrejtése
+\end{itemize}
+
+\subsection{Rétegek egyesítése}
+A rétegek kombinálásának lehetőségei:
+\begin{itemize}
+    \item \textbf{Rétegek egyesítése}: A kijelölt rétegek kombinálása
+    \item \textbf{Összevonás}: Minden látható réteg egyetlen rétegbe fűzése
+\end{itemize}
+
+\section{Visszavonás és Ismétlés (Undo/Redo) műveletek}
+A műveletek visszavonásának és ismétlésének lehetőségei:
+\begin{itemize}
+    \item \textbf{Visszavonás}: \texttt{Ctrl+Z} (maximum 50 műveletig)
+    \item \textbf{Ismétlés}: \texttt{Ctrl+Y}
+    \item \textbf{Támogatott műveletek}: Minden szűrő és rétegművelet visszavonható
+\end{itemize}
+
+\section{Billentyűparancsok}
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Billentyűkombináció} & \textbf{Művelet} \\
+\hline
+\texttt{Ctrl+N} & Új projekt létrehozása \\
+\hline
+\texttt{Ctrl+O} & Kép megnyitása \\
+\hline
+\texttt{Ctrl+S} & Kép mentése \\
+\hline
+\texttt{Ctrl+Shift+S} & Mentés másként \\
+\hline
+\texttt{Ctrl+Z} & Visszavonás \\
+\hline
+\texttt{Ctrl+Y} & Ismétlés \\
+\hline
+\texttt{Ctrl+G} & Szürkeárnyalatos konverzió \\
+\hline
+\texttt{Ctrl+I} & Színek invertálása \\
+\hline
+\texttt{Ctrl+H} & Vízszintes tükrözés \\
+\hline
+\texttt{Ctrl+F} & Illesztés a képernyőhöz \\
+\hline
+\texttt{Ctrl++} & Nagyítás \\
+\hline
+\texttt{Ctrl+-} & Kicsinyítés \\
+\hline
+\texttt{Ctrl+0} & 100\%-os nagyítás \\
+\hline
+\end{tabular}
+\caption{Billentyűparancsok összefoglaló táblázata}
+\end{table}
+
+\section{Képek Mentése}
+\subsection{Támogatott formátumok}
+Az alkalmazás a következő képformátumok mentését támogatja:
+\begin{itemize}
+    \item \textbf{PNG} (Portable Network Graphics) - Veszteségmentes formátum
+    \item \textbf{JPEG} (Joint Photographic Experts Group) - Tömörített formátum
+\end{itemize}
+
+\subsection{Mentési lehetőségek}
+A mentés kétféleképpen történhet:
+\begin{itemize}
+    \item \textbf{Mentés} (\texttt{Ctrl+S}): Az aktuális fájl felülírása
+    \item \textbf{Mentés másként} (\texttt{Ctrl+Shift+S}): Új fájl létrehozása
+\end{itemize}
+
+\chapter{Fejlesztői Dokumentáció}
+\section{Architektúra és Fő Komponensek}
+A Pixelium moduláris architektúrája két fő komponensből áll:
+
+\subsection{Pixelium.Core}
+A képfeldolgozási könyvtár, amely független a felhasználói felülettől:
+\begin{itemize}
+    \item Képfeldolgozási algoritmusok implementációja
+    \item Rétegkezelés logikája
+    \item Hisztogram számítások
+\end{itemize}
+
+\subsection{Pixelium.UI}
+Avalonia UI alapú asztali alkalmazás:
+\begin{itemize}
+    \item Felhasználói felület komponensek
+    \item MVVM minta implementációja
+    \item Parancskezelés és visszavonás/ismétlés rendszer
+\end{itemize}
+
+\section{Kulcstechnológiák}
+Az alkalmazás a következő technológiákra épül:
+\begin{itemize}
+    \item \textbf{.NET 9.0}: Modern, nagy teljesítményű alkalmazás keretrendszer
+    \item \textbf{Avalonia UI}: Keretrendszertől független UI keretrendszer
+    \item \textbf{SkiaSharp}: 2D grafikai könyvtár gyors rendereléshez
+    \item \textbf{MVVM minta}: Tiszta választási rétegek megvalósítása
+    \item \textbf{Parancs minta}: Visszavonás/ismétlés funkcionalitás implementációja
+\end{itemize}
+
+\clearpage
+\section{Teljesítményoptimalizálások}
+A Pixelium több teljesítményoptimalizálási technikát alkalmaz a gyors képfeldolgozás érdekében.
+
+\subsection{Lookup Table (LUT) Gyorsítótárazás}
+A lookup table-ök (keresési táblázatok) előre kiszámított transzformációs értékeket tárolnak, ami jelentősen felgyorsítja a pixelenkénti műveleteket.
+
+\subsubsection{LUT szolgáltatás implementációja}
+A \texttt{LookupTableService} osztály a következő funkciókat biztosítja:
+\begin{itemize}
+    \item \textbf{Thread-safe cache}: \texttt{ConcurrentDictionary<string, Lazy<byte[]>>} alapú gyorsítótár
+    \item \textbf{Lazy inicializálás}: A LUT-ok csak az első használatkor kerülnek kiszámításra
+    \item \textbf{Előre betöltött táblázatok}: A gyakran használt táblázatok (invert, grayscale, gamma) már inicializáláskor létrejönnek
+    \item \textbf{256 elemű táblázatok}: Minden lehetséges bemeneti érték (0-255) számára előre kiszámított kimenet
+\end{itemize}
+
+\subsubsection{LUT alapú szűrők}
+A következő szűrők használnak LUT-ot a gyors végrehajtáshoz:
+\begin{itemize}
+    \item \textbf{GrayscaleProcessor}: Három külön LUT-ot használ (R×0.299, G×0.587, B×0.114)
+    \item \textbf{InvertProcessor}: Egyszerű 255-érték LUT
+    \item \textbf{GammaProcessor}: Gamma érték alapján előre kiszámított táblázat
+    \item \textbf{LogarithmicProcessor}: Logaritmikus transzformáció LUT-ja
+\end{itemize}
+
+\subsection{Párhuzamos Feldolgozás (Multithreading)}
+A képfeldolgozó algoritmusok intenzíven használják a párhuzamos feldolgozást:
+
+\subsubsection{Sor-alapú párhuzamosítás}
+A képfeldolgozás soronként történik párhuzamosan a \texttt{Parallel.For} használatával:
+
+\begin{lstlisting}[language={[Sharp]C}]
+Parallel.For(0, bitmap.Height, y =>
+{
+    byte* rowPtr = ptr + (y * bitmap.Width * 4);
+    for (int x = 0; x < bitmap.Width * 4; x += 4)
+    {
+        // Pixelenkenti feldolgozas
+    }
+});
+\end{lstlisting}
+
+\subsubsection{Thread-safe adatstruktúrák}
+\begin{itemize}
+    \item \textbf{ConcurrentDictionary}: A LUT gyorsítótár thread-safe tárolására
+    \item \textbf{Lazy<T>}: Biztosítja, hogy a LUT-ok inicializálása csak egyszer történjen meg párhuzamos hozzáférés esetén is
+    \item \textbf{Független sorok}: Minden képsor függetlenül dolgozható fel, nincs szükség szinkronizációra
+\end{itemize}
+
+\subsection{Unsafe Kód és Pointer Műveletek}
+A kritikus teljesítményű részeken közvetlen memória-hozzáférés történik unsafe pointer műveletekkel:
+
+\subsubsection{Előnyök}
+\begin{itemize}
+    \item \textbf{Gyorsabb hozzáférés}: Közvetlen memória manipuláció tömb indexelés helyett
+    \item \textbf{Kevesebb bounds checking}: Nincs automatikus határellenőrzés
+    \item \textbf{Cache-barát}: Lineáris memória hozzáférési minta
+\end{itemize}
+
+\subsubsection{Implementáció}
+\begin{lstlisting}[language={[Sharp]C}]
+var pixels = bitmap.GetPixels();
+var ptr = (byte*)pixels.ToPointer();
+
+// Kozvetlen memoria hozzaferes
+byte blue = ptr[offset + 0];
+byte green = ptr[offset + 1];
+byte red = ptr[offset + 2];
+byte alpha = ptr[offset + 3];
+\end{lstlisting}
+
+\clearpage
+\section{Képmegjelenítés és Formátumok}
+
+\subsection{Belső Formátum}
+Minden belső képfeldolgozási művelet a \texttt{SKColorType.Bgra8888} formátumot használja:
+
+\subsubsection{BGRA8888 formátum jellemzői}
+\begin{itemize}
+    \item \textbf{4 byte per pixel}: Kék, Zöld, Piros, Alfa csatornák
+    \item \textbf{Csatorna sorrend}: B-G-R-A (nem R-G-B-A!)
+    \item \textbf{8 bit per csatorna}: Minden csatorna 0-255 értéktartományban
+    \item \textbf{Premultiplied alpha}: Az alfa csatorna előre megszorozva
+\end{itemize}
+
+\subsubsection{Memória elrendezés}
+\begin{lstlisting}
+Pixel offset: [0] [1] [2] [3] [4] [5] [6] [7] ...
+Csatorna:      B   G   R   A   B   G   R   A  ...
+              |-- Pixel 1 --| |-- Pixel 2 --|
+\end{lstlisting}
+
+\subsection{Be- és Kimeneti Formátumok}
+
+\subsubsection{Bemeneti formátumok (Megnyitás)}
+Az alkalmazás a következő formátumokat képes beolvasni:
+\begin{itemize}
+    \item \textbf{PNG (Portable Network Graphics)}
+    \begin{itemize}
+        \item Veszteségmentes tömörítés
+        \item Támogatja az alfa csatornát (átlátszóság)
+        \item Minden képtípushoz ajánlott
+    \end{itemize}
+    \item \textbf{JPEG (Joint Photographic Experts Group)}
+    \begin{itemize}
+        \item Veszteséges tömörítés
+        \item Nincs alfa csatorna támogatás
+        \item Fotók tárolására optimalizált
+    \end{itemize}
+    \item \textbf{BMP (Bitmap)}
+    \begin{itemize}
+        \item Tömörítetlen vagy RLE tömörített
+        \item Nagy fájlméret
+        \item Gyors betöltés
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Kimeneti formátumok (Mentés)}
+Az alkalmazás a következő formátumokba képes menteni:
+\begin{itemize}
+    \item \textbf{PNG}
+    \begin{itemize}
+        \item Veszteségmentes mentés
+        \item Alfa csatorna megőrzése
+        \item Minőségi paraméter: 100 (maximális tömörítési szint)
+    \end{itemize}
+    \item \textbf{JPEG}
+    \begin{itemize}
+        \item Veszteséges mentés
+        \item Kisebb fájlméret
+        \item Minőségi paraméter: 100 (maximális minőség)
+        \item Az átlátszó területek fehér háttérrel kerülnek mentésre
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Formátum konverzió}
+Minden betöltött kép automatikusan \texttt{BGRA8888} formátumra konvertálódik:
+
+\begin{lstlisting}[language={[Sharp]C}]
+using var originalBitmap = SKBitmap.Decode(stream);
+var bitmap = new SKBitmap(
+    originalBitmap.Width,
+    originalBitmap.Height,
+    SKColorType.Bgra8888,
+    SKAlphaType.Premul
+);
+using var canvas = new SKCanvas(bitmap);
+canvas.DrawBitmap(originalBitmap, 0, 0);
+\end{lstlisting}
+
+\clearpage
+\section{Képfeldolgozási Algoritmusok}
+
+\subsection{Pixelenkénti Transzformációk}
+
+\subsubsection{Szürkeárnyalatos Konverzió (Grayscale)}
+A színes kép szürkeárnyalatos képpé alakítása a luminancia számításával:
+
+\textbf{Képlet:}
+\begin{equation}
+Gray = 0.299 \times R + 0.587 \times G + 0.114 \times B
+\end{equation}
+
+\textbf{LUT implementáció:}
+\begin{itemize}
+    \item Három külön lookup table (R, G, B csatornákra)
+    \item Előre kiszámított értékek: \texttt{redLut[i] = (byte)(i * 0.299)}
+    \item Minden pixel: \texttt{gray = redLut[r] + greenLut[g] + blueLut[b]}
+\end{itemize}
+
+\subsubsection{Invertálás (Invert)}
+A kép színeinek invertálása minden csatornán:
+
+\textbf{Képlet:}
+\begin{equation}
+Output = 255 - Input
+\end{equation}
+
+\textbf{LUT implementáció:}
+\begin{lstlisting}[language={[Sharp]C}]
+invertLut[i] = (byte)(255 - i);  // i: 0-255
+\end{lstlisting}
+
+\subsubsection{Gamma Korrekció}
+A kép fényerejének nem-lineáris beállítása:
+
+\textbf{Képlet:}
+\begin{equation}
+Output = 255 \times \left(\frac{Input}{255}\right)^{1/\gamma}
+\end{equation}
+
+\textbf{Paraméterek:}
+\begin{itemize}
+    \item $\gamma < 1.0$: Világosítás
+    \item $\gamma = 1.0$: Nincs változás
+    \item $\gamma > 1.0$: Sötétítés
+\end{itemize}
+
+\subsubsection{Logaritmikus Transzformáció}
+Dinamikatartomány tömörítése logaritmikus függvénnyel:
+
+\textbf{Képlet:}
+\begin{equation}
+Output = c \times \log(1 + Input)
+\end{equation}
+
+ahol $c$ egy konstans a normalizáláshoz.
+
+\clearpage
+\subsection{Geometriai Transzformációk}
+
+\subsubsection{Tükrözés (Flip)}
+A kép tükrözése vízszintesen vagy függőlegesen:
+
+\textbf{Vízszintes tükrözés:}
+\begin{itemize}
+    \item Minden sor pixeleinek megfordítása
+    \item Idő komplexitás: $O(width \times height)$
+    \item Párhuzamosan futtatható soronként
+\end{itemize}
+
+\textbf{Függőleges tükrözés:}
+\begin{itemize}
+    \item A sorok sorrendjének megfordítása
+    \item Szintén párhuzamosítható
+\end{itemize}
+
+\clearpage
+\subsection{Konvolúciós Szűrők}
+
+\subsubsection{Konvolúció Általános Képlete}
+A konvolúciós szűrők egy kernelt (maszkot) alkalmaznak a képre:
+
+\begin{equation}
+Output(x,y) = \sum_{i=-k}^{k} \sum_{j=-k}^{k} Input(x+i, y+j) \times Kernel(i,j)
+\end{equation}
+
+\subsubsection{Box Filter (Átlagoló Elmosás)}
+Egyszerű átlagoló szűrő, minden kernelelem értéke azonos:
+
+\textbf{3×3 kernel:}
+\begin{equation}
+\frac{1}{9}
+\begin{bmatrix}
+1 & 1 & 1 \\
+1 & 1 & 1 \\
+1 & 1 & 1
+\end{bmatrix}
+\end{equation}
+
+\subsubsection{Gauss Elmosás (Gaussian Blur)}
+Gauss-eloszlás alapú elmosás, simább eredményt ad:
+
+\textbf{Gauss függvény:}
+\begin{equation}
+G(x,y) = \frac{1}{2\pi\sigma^2} e^{-\frac{x^2+y^2}{2\sigma^2}}
+\end{equation}
+
+\textbf{5×5 kernel példa ($\sigma=1.0$):}
+\begin{equation}
+\frac{1}{273}
+\begin{bmatrix}
+1 & 4 & 7 & 4 & 1 \\
+4 & 16 & 26 & 16 & 4 \\
+7 & 26 & 41 & 26 & 7 \\
+4 & 16 & 26 & 16 & 4 \\
+1 & 4 & 7 & 4 & 1
+\end{bmatrix}
+\end{equation}
+
+\subsubsection{Sobel Élérzékelés}
+A Sobel operátor két irányt (vízszintes és függőleges) vizsgál:
+
+\textbf{Vízszintes kernel ($G_x$):}
+\begin{equation}
+\begin{bmatrix}
+-1 & 0 & 1 \\
+-2 & 0 & 2 \\
+-1 & 0 & 1
+\end{bmatrix}
+\end{equation}
+
+\textbf{Függőleges kernel ($G_y$):}
+\begin{equation}
+\begin{bmatrix}
+-1 & -2 & -1 \\
+0 & 0 & 0 \\
+1 & 2 & 1
+\end{bmatrix}
+\end{equation}
+
+\textbf{Eredmény számítás:}
+\begin{equation}
+G = \sqrt{G_x^2 + G_y^2}
+\end{equation}
+
+\subsubsection{Laplace Élérzékelés}
+A Laplace operátor második deriváltakat használ:
+
+\textbf{3×3 kernel:}
+\begin{equation}
+\begin{bmatrix}
+0 & 1 & 0 \\
+1 & -4 & 1 \\
+0 & 1 & 0
+\end{bmatrix}
+\end{equation}
+
+\clearpage
+\subsection{Harris Sarokérzékelés}
+A Harris sarokdetektor algoritmus a következő lépésekből áll:
+
+\subsubsection{Algoritmus lépései}
+\begin{enumerate}
+    \item \textbf{Gradiens számítás}: Sobel operátorral $I_x$ és $I_y$ számítása
+    \item \textbf{Gradiens négyzetek}: $I_x^2$, $I_y^2$, és $I_x \times I_y$ számítása
+    \item \textbf{Gauss simítás}: A négyzetek simítása Gauss szűrővel
+    \item \textbf{Sarokválasz számítás}:
+    \begin{equation}
+    R = det(M) - k \times trace(M)^2
+    \end{equation}
+    ahol $M$ a struktúra mátrix, $k$ tipikusan 0.04-0.06
+    \item \textbf{Küszöbölés}: Csak a $R > threshold$ pontok kerülnek megjelölésre
+    \item \textbf{Non-maximum suppression}: Helyi maximumok kiválasztása
+\end{enumerate}
+
+\subsubsection{Paraméterek}
+\begin{itemize}
+    \item \textbf{Threshold}: Minimális sarokerősség (0-255)
+    \item \textbf{k}: Érzékenységi paraméter (0.04-0.06 ajánlott)
+    \item \textbf{Sigma}: Gauss simítás erőssége
+\end{itemize}
+
+\clearpage
+\subsection{Hisztogram Alapú Műveletek}
+
+\subsubsection{Hisztogram Számítás}
+A hisztogram egy 256 elemű tömb, amely az egyes intenzitásértékek gyakoriságát tárolja:
+
+\begin{lstlisting}[language={[Sharp]C}]
+var histogram = new int[256];
+for (int i = 0; i < pixelCount; i++)
+{
+    byte intensity = pixels[i];
+    histogram[intensity]++;
+}
+\end{lstlisting}
+
+\subsubsection{Luminancia Hisztogram}
+RGB képeknél a luminancia számítása:
+\begin{equation}
+L = 0.299 \times R + 0.587 \times G + 0.114 \times B
+\end{equation}
+
+\subsubsection{Hisztogram Kiegyenlítés}
+A hisztogram kiegyenlítés növeli a kép kontrasztját:
+
+\textbf{Algoritmus:}
+\begin{enumerate}
+    \item Hisztogram számítása
+    \item Kumulatív eloszlásfüggvény (CDF) számítása:
+    \begin{equation}
+    CDF[i] = \sum_{j=0}^{i} histogram[j]
+    \end{equation}
+    \item Normalizálás és LUT létrehozása:
+    \begin{equation}
+    Output[i] = \frac{CDF[i] - CDF_{min}}{TotalPixels - CDF_{min}} \times 255
+    \end{equation}
+    \item LUT alkalmazása minden pixelre
+\end{enumerate}
+
+\clearpage
+\section{Parancs Minta és Undo/Redo Funkció}
+A Pixelium a Command Pattern-t alkalmazza a visszavonás/ismétlés funkcióhoz.
+
+\subsection{IImageCommand Interfész}
+Minden visszavonható művelet implementálja az \texttt{IImageCommand} interfészt:
+
+\begin{lstlisting}[language={[Sharp]C}]
+public interface IImageCommand
+{
+    void Execute();
+    void Undo();
+}
+\end{lstlisting}
+
+\subsection{CommandHistory}
+A \texttt{CommandHistory} osztály kezeli a parancsok előzményeit:
+\begin{itemize}
+    \item \textbf{Maximum 50 parancs}: A legrégebbi parancsok automatikusan törlődnek
+    \item \textbf{Stack alapú}: Végrehajtott és visszavont parancsok külön stacken
+    \item \textbf{Snapshot}: Minden parancs elmenti a művelet előtti állapotot
+\end{itemize}
+
+\subsection{FilterCommand}
+A szűrők alkalmazása előtt másolat készül a képről:
+\begin{lstlisting}[language={[Sharp]C}]
+public void Execute()
+{
+    _snapshot = _layer.Content.Copy();
+    _processor.Process(_layer.Content);
+}
+
+public void Undo()
+{
+    var temp = _layer.Content;
+    _layer.Content = _snapshot;
+    _snapshot = temp;
+}
+\end{lstlisting}
+
+\clearpage
+\chapter{Képernyőképek}
+
+\section{Alkalmazás Felület}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{01_pixelium_home.png}
+\caption{Pixelium főképernyő - Alapértelmezett nézetben a mintaképpel és a rétegkezelő panellel}
+\label{fig:home}
+\end{figure}
+
+\clearpage
+\section{Hisztogram Analízis}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{02_pixelium_histogram.png}
+\caption{Hisztogram megjelenítés - A luminancia eloszlás grafikus ábrázolása}
+\label{fig:histogram}
+\end{figure}
+
+\clearpage
+\section{Élérzékelés}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{03_pixelium_sobel_edge_detection.png}
+\caption{Sobel élérzékelés alkalmazása - Az élek kiemelése a képen}
+\label{fig:sobel}
+\end{figure}
+
+\clearpage
+\section{Réteges Szerkesztés}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{04_pixelium_multiple_layers.png}
+\caption{Több réteg kezelése - Rétegek panel különböző szűrőkkel}
+\label{fig:layers}
+\end{figure}
+
+\clearpage
+\section{Elmosási Szűrők}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{05_pixelium_blur.png}
+\caption{Gauss elmosás alkalmazása - A kép simítása Gauss szűrővel}
+\label{fig:blur}
+\end{figure}
+
+\end{document}

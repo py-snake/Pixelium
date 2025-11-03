@@ -32,6 +32,7 @@ namespace Pixelium.UI.ViewModels
         private bool _isNonDestructiveMode = true;
         private double _viewportWidth = 800;
         private double _viewportHeight = 600;
+        private string? _currentFilePath;
 
         public Bitmap? ImageSource
         {
@@ -137,6 +138,7 @@ namespace Pixelium.UI.ViewModels
         public ICommand NewCommand { get; }
         public ICommand OpenCommand { get; }
         public ICommand SaveCommand { get; }
+        public ICommand SaveAsCommand { get; }
         public ICommand ExitCommand { get; }
         public ICommand CreateSample1Command { get; }
         public ICommand CreateSample2Command { get; }
@@ -315,6 +317,7 @@ namespace Pixelium.UI.ViewModels
             NewCommand = new SimpleCommand(CreateNew);
             OpenCommand = new SimpleCommand(async () => await OpenImage());
             SaveCommand = new SimpleCommand(async () => await SaveImage());
+            SaveAsCommand = new SimpleCommand(async () => await SaveImageAs());
             ExitCommand = new SimpleCommand(() => Environment.Exit(0));
             CreateSample1Command = new SimpleCommand(CreateSample1);
             CreateSample2Command = new SimpleCommand(CreateSample2);
@@ -465,6 +468,7 @@ namespace Pixelium.UI.ViewModels
 
         private void CreateNew()
         {
+            _currentFilePath = null;
             _imageService.CreateNewProject(800, 600);
             OnProjectChanged(this, EventArgs.Empty);
         }
@@ -516,6 +520,7 @@ namespace Pixelium.UI.ViewModels
                     var filePath = file.Path.LocalPath;
                     if (_imageService.LoadImage(filePath))
                     {
+                        _currentFilePath = filePath;
                         StatusMessage = $"Loaded: {Path.GetFileName(filePath)}";
                         OnProjectChanged(this, EventArgs.Empty);
 
@@ -532,15 +537,41 @@ namespace Pixelium.UI.ViewModels
 
         private async Task SaveImage()
         {
+            // If we have a current file path, save directly to it
+            if (!string.IsNullOrEmpty(_currentFilePath))
+            {
+                try
+                {
+                    if (_imageService.SaveImage(_currentFilePath))
+                    {
+                        StatusMessage = $"Saved: {Path.GetFileName(_currentFilePath)}";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Error saving image: {ex.Message}";
+                }
+            }
+            else
+            {
+                // No current file path, show Save As dialog
+                await SaveImageAs();
+            }
+        }
+
+        private async Task SaveImageAs()
+        {
             if (_mainWindow == null) return;
 
             var storageProvider = _mainWindow.StorageProvider;
 
             var file = await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
-                Title = "Save Image",
+                Title = "Save Image As",
                 DefaultExtension = "png",
-                SuggestedFileName = "pixelium_output.png",
+                SuggestedFileName = !string.IsNullOrEmpty(_currentFilePath)
+                    ? Path.GetFileName(_currentFilePath)
+                    : "pixelium_output.png",
                 FileTypeChoices = new[]
                 {
                     new FilePickerFileType("PNG Image")
@@ -552,11 +583,6 @@ namespace Pixelium.UI.ViewModels
                     {
                         Patterns = new[] { "*.jpg", "*.jpeg" },
                         MimeTypes = new[] { "image/jpeg" }
-                    },
-                    new FilePickerFileType("BMP Image")
-                    {
-                        Patterns = new[] { "*.bmp" },
-                        MimeTypes = new[] { "image/bmp" }
                     }
                 }
             });
@@ -568,6 +594,7 @@ namespace Pixelium.UI.ViewModels
                     var filePath = file.Path.LocalPath;
                     if (_imageService.SaveImage(filePath))
                     {
+                        _currentFilePath = filePath;
                         StatusMessage = $"Saved: {Path.GetFileName(filePath)}";
                     }
                 }

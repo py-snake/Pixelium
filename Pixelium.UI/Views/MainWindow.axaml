@@ -19,6 +19,7 @@
         <KeyBinding Gesture="Ctrl+N" Command="{Binding NewCommand}"/>
         <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenCommand}"/>
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}"/>
+        <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveAsCommand}"/>
 
         <!-- Edit Operations -->
         <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoCommand}"/>
@@ -44,7 +45,8 @@
             <MenuItem Header="_File">
                 <MenuItem Header="_New" Command="{Binding NewCommand}" InputGesture="Ctrl+N"/>
                 <MenuItem Header="_Open..." Command="{Binding OpenCommand}" InputGesture="Ctrl+O"/>
-                <MenuItem Header="_Save..." Command="{Binding SaveCommand}" InputGesture="Ctrl+S"/>
+                <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGesture="Ctrl+S"/>
+                <MenuItem Header="Save _As..." Command="{Binding SaveAsCommand}" InputGesture="Ctrl+Shift+S"/>
                 <Separator/>
                 <MenuItem Header="New Sample Image">
                     <MenuItem Header="Sample 1: Gradient &amp; Text" Command="{Binding CreateSample1Command}"/>

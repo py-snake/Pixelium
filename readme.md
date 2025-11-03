@@ -45,9 +45,9 @@ A high-performance cross-platform image editing application built with .NET 9.0 
 
 ### File Operations
 - `Ctrl+N` - New Project
-- `Ctrl+O` - Open Image
-- `Ctrl+S` - Save Image
-- `Ctrl+Shift+S` - Save As
+- `Ctrl+O` - Open Image (PNG, JPEG, BMP, GIF)
+- `Ctrl+S` - Save (quick save to current file, or prompt if new)
+- `Ctrl+Shift+S` - Save As (choose format: PNG or JPEG)
 
 ### Edit Operations
 - `Ctrl+Z` - Undo
@@ -88,8 +88,10 @@ A high-performance cross-platform image editing application built with .NET 9.0 
    - Lock layers to prevent changes
 
 5. **Save your work**
-   - Click `File > Save` or press `Ctrl+S`
-   - Choose format: PNG, JPEG, or BMP
+   - **Save** (`Ctrl+S`) - Quick save to current file
+   - **Save As** (`Ctrl+Shift+S`) - Save with new name/location
+   - Choose format: PNG or JPEG
+   - If file hasn't been saved yet, Save will prompt for location
 
 ### Sample Images
 
@@ -167,10 +169,15 @@ Builds will be created in the `builds/` directory.
 
 ## File Formats
 
-**Input/Output:**
+**Input (Open):**
 - PNG (Portable Network Graphics)
-- JPEG (Joint Photographic Experts Group)
+- JPEG/JPG (Joint Photographic Experts Group)
 - BMP (Bitmap)
+- GIF (Graphics Interchange Format)
+
+**Output (Save/Save As):**
+- PNG - Lossless compression, supports transparency
+- JPEG/JPG - Lossy compression, smaller file size
 
 **Native Format:**
 - All operations use `SKColorType.Bgra8888` (4 bytes per pixel)

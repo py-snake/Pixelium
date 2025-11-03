@@ -74,18 +74,21 @@ namespace Pixelium.Core.Services
             {
                 using var flattened = CurrentProject.FlattenLayers();
                 using var image = SKImage.FromBitmap(flattened);
-                
+
                 var extension = Path.GetExtension(filePath).ToLowerInvariant();
                 var format = extension switch
                 {
                     ".jpg" or ".jpeg" => SKEncodedImageFormat.Jpeg,
                     ".png" => SKEncodedImageFormat.Png,
-                    ".bmp" => SKEncodedImageFormat.Bmp,
                     _ => SKEncodedImageFormat.Png
                 };
 
+                // Encode first to ensure it succeeds before creating/truncating the file
                 using var data = image.Encode(format, 100);
-                using var fileStream = File.OpenWrite(filePath);
+                if (data == null) return false;
+
+                // Use File.Create to ensure file is truncated if it exists
+                using var fileStream = File.Create(filePath);
                 data.SaveTo(fileStream);
                 return true;
             }
