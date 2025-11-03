@@ -1,10 +1,10 @@
-**Pixelium Képszerkesztő**
+# Pixelium Képszerkesztő
 
-Dokumentáció
+## Dokumentáció
 
 <img src="icon.jpeg" style="width:40.0%" alt="image" />
 
-1970-01-01
+2025-11-03
 
 # Bevezetés
 
