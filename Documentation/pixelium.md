@@ -1,10 +1,10 @@
 # Pixelium Képszerkesztő
 
-## Dokumentáció
+**Dokumentáció**
 
 <img src="icon.jpeg" style="width:40.0%" alt="image" />
 
-2025-11-03
+*2025-11-03*
 
 # Bevezetés
 
