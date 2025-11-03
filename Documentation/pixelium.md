@@ -549,9 +549,6 @@ invertLut[i] = (byte)(255 - i);  // i: 0-255
 A kép fényerejének nem-lineáris beállítása:
 
 **Képlet:**
-$$\begin{equation}
-Output = 255 \times \left(\frac{Input}{255}\right)^{1/\gamma}
-\end{equation}$$
 
 **Paraméterek:**
 
@@ -596,84 +593,35 @@ A kép tükrözése vízszintesen vagy függőlegesen:
 
 A konvolúciós szűrők egy kernelt (maszkot) alkalmaznak a képre:
 
-$$\begin{equation}
-Output(x,y) = \sum\_{i=-k}^{k} \sum\_{j=-k}^{k} Input(x+i, y+j) \times Kernel(i,j)
-\end{equation}$$
-
 #### Box Filter (Átlagoló Elmosás)
 
 Egyszerű átlagoló szűrő, minden kernelelem értéke azonos:
 
 **3×3 kernel:**
-$$\begin{equation}
-\frac{1}{9}
-\begin{bmatrix}
-1 & 1 & 1 \\
-1 & 1 & 1 \\
-1 & 1 & 1
-\end{bmatrix}
-\end{equation}$$
 
 #### Gauss Elmosás (Gaussian Blur)
 
 Gauss-eloszlás alapú elmosás, simább eredményt ad:
 
 **Gauss függvény:**
-$$\begin{equation}
-G(x,y) = \frac{1}{2\pi\sigma^2} e^{-\frac{x^2+y^2}{2\sigma^2}}
-\end{equation}$$
 
 **5×5 kernel példa (*σ* = 1.0):**
-$$\begin{equation}
-\frac{1}{273}
-\begin{bmatrix}
-1 & 4 & 7 & 4 & 1 \\
-4 & 16 & 26 & 16 & 4 \\
-7 & 26 & 41 & 26 & 7 \\
-4 & 16 & 26 & 16 & 4 \\
-1 & 4 & 7 & 4 & 1
-\end{bmatrix}
-\end{equation}$$
 
 #### Sobel Élérzékelés
 
 A Sobel operátor két irányt (vízszintes és függőleges) vizsgál:
 
 **Vízszintes kernel (*G*<sub>*x*</sub>):**
-$$\begin{equation}
-\begin{bmatrix}
--1 & 0 & 1 \\
--2 & 0 & 2 \\
--1 & 0 & 1
-\end{bmatrix}
-\end{equation}$$
 
 **Függőleges kernel (*G*<sub>*y*</sub>):**
-$$\begin{equation}
-\begin{bmatrix}
--1 & -2 & -1 \\
-0 & 0 & 0 \\
-1 & 2 & 1
-\end{bmatrix}
-\end{equation}$$
 
 **Eredmény számítás:**
-$$\begin{equation}
-G = \sqrt{G_x^2 + G_y^2}
-\end{equation}$$
 
 #### Laplace Élérzékelés
 
 A Laplace operátor második deriváltakat használ:
 
 **3×3 kernel:**
-$$\begin{equation}
-\begin{bmatrix}
-0 & 1 & 0 \\
-1 & -4 & 1 \\
-0 & 1 & 0
-\end{bmatrix}
-\end{equation}$$
 
 ### Harris Sarokérzékelés
 
@@ -737,16 +685,8 @@ A hisztogram kiegyenlítés növeli a kép kontrasztját:
 1.  Hisztogram számítása
 
 2.  Kumulatív eloszlásfüggvény (CDF) számítása:
-    $$\begin{equation}
-        CDF\[i\] = \sum\_{j=0}^{i} histogram\[j\]
-        
-    \end{equation}$$
 
 3.  Normalizálás és LUT létrehozása:
-    $$\begin{equation}
-        Output\[i\] = \frac{CDF\[i\] - CDF\_{min}}{TotalPixels - CDF\_{min}} \times 255
-        
-    \end{equation}$$
 
 4.  LUT alkalmazása minden pixelre
 
