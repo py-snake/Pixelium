@@ -9,9 +9,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelium.UI", "Pixelium.UI\Pixelium.UI.csproj", "{B2C3D4E5-F678-9012-3456-789ABCDEF012}"
 EndProject
 
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pixelium.CLI", "Pixelium.CLI\Pixelium.CLI.csproj", "{12DBFBBB-06C5-401E-B754-32CE0B287CC6}"
-EndProject
-
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,10 +25,5 @@ Global
 		{B2C3D4E5-F678-9012-3456-789ABCDEF012}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2C3D4E5-F678-9012-3456-789ABCDEF012}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2C3D4E5-F678-9012-3456-789ABCDEF012}.Release|Any CPU.Build.0 = Release|Any CPU
-		
-		{12DBFBBB-06C5-401E-B754-32CE0B287CC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{12DBFBBB-06C5-401E-B754-32CE0B287CC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{12DBFBBB-06C5-401E-B754-32CE0B287CC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{12DBFBBB-06C5-401E-B754-32CE0B287CC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
